@@ -1,300 +1,643 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEKO WASH</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <style>
-    body::before {
-      content: "";
-      position: fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background-image: url("my-logo.png");
-      background-repeat: repeat;
-      background-size:200px;
-      opacity:0.05;
-      z-index:-1;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบริหารร้าน หว้านใหญ่ เพ็ท มาร์ท (V.6.3 Stable Bill)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { background-color: #f0f7f4; font-family: 'Sarabun', sans-serif; }
+        .sidebar { min-height: 100vh; background-color: #2d6a4f; color: white; }
+        .nav-link { color: rgba(255,255,255,0.8); cursor: pointer; padding: 15px 20px; border-radius: 0 25px 25px 0; margin-bottom: 5px; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background-color: #40916c; color: white; font-weight: bold; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
+        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; background: white; }
+        .product-card { cursor: pointer; border: 2px solid transparent; overflow: hidden; position: relative; transition: 0.2s; }
+        .product-card:hover { border-color: #40916c; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .product-img { height: 120px; object-fit: cover; background-color: #e9ecef; width: 100%; }
+        .btn-green { background-color: #2d6a4f; color: white; }
+        .btn-green:hover { background-color: #1b4332; color: white; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
+        
+        /* Bill Style inside SweetAlert */
+        .bill-wrapper { font-family: 'Courier New', monospace; text-align: left; font-size: 14px; color: #333; background: #fff; padding: 10px; border: 1px dashed #999; }
+        .bill-header { text-align: center; border-bottom: 1px dashed #333; padding-bottom: 10px; margin-bottom: 10px; }
+        .bill-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .bill-total { border-top: 1px dashed #333; margin-top: 10px; padding-top: 10px; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between; }
+    </style>
 </head>
-<body class="bg-[#c3edfe] min-h-screen">
-  <div id="root"></div>
+<body>
 
-<script type="text/babel">
-const COLORS = { primary: "#213f9a", accent: "#c3edfe" };
-
-const SERVICES = [
-  { id: "wash16", title: "บริการซัก - ถังขนาด 16 กก.", options: [{id:"w16_hot",name:"ซักผ้า น้ำร้อน",price:70},{id:"w16_warm",name:"ซักผ้า น้ำอุ่น",price:60},{id:"w16_cold",name:"ซักผ้า น้ำเย็น",price:50}]},
-  { id: "wash21", title: "บริการซัก - ถังขนาด 21 กก.", options: [{id:"w21_hot",name:"ซักผ้า น้ำร้อน",price:80},{id:"w21_warm",name:"ซักผ้า น้ำอุ่น",price:70},{id:"w21_cold",name:"ซักผ้า น้ำเย็น",price:60}]},
-  { id: "dry10", title: "บริการอบ - ขนาด 10 กก.", options: [{id:"d10_high",name:"อบ อุณหภูมิสูง",price:60},{id:"d10_med",name:"อบ อุณหภูมิปานกลาง",price:50},{id:"d10_low",name:"อบ อุณหภูมิต่ำ",price:40}]},
-  { id: "dry16", title: "บริการอบ - ขนาด 16 กก.", options: [{id:"d16_high",name:"อบ อุณหภูมิสูง",price:70},{id:"d16_med",name:"อบ อุณหภูมิปานกลาง",price:60},{id:"d16_low",name:"อบ อุณหภูมิต่ำ",price:50}]},
-];
-
-const DELIVERY = [
-  { id:"pickup_drop", name:"รับ-ส่งผ้า (ร้านไปรับและส่งผ้า)", price:70 },
-  { id:"self_drop", name:"ลูกค้านำผ้ามาส่งที่ร้านด้วยตัวเอง", price:50 }
-];
-
-function App() {
-  const [step,setStep] = React.useState("select");
-  const [selected,setSelected] = React.useState({});
-  const [deliveryChoice,setDeliveryChoice] = React.useState("pickup_drop");
-
-  const chosenItems = React.useMemo(()=>{
-    const items = [];
-    SERVICES.forEach(group=>{
-      const selIds = selected[group.id] || [];
-      selIds.forEach(id=>{
-        const opt = group.options.find(o=>o.id===id);
-        if(opt) items.push({id:opt.id,name:`${opt.name} (${group.title.replace("บริการ","")})`,price:opt.price});
-      });
-    });
-    const deliveryOpt = DELIVERY.find(d=>d.id===deliveryChoice);
-    if(deliveryOpt) items.push({id:deliveryOpt.id,name:deliveryOpt.name,price:deliveryOpt.price});
-    return items;
-  },[selected,deliveryChoice]);
-
-  const total = React.useMemo(()=>chosenItems.reduce((s,i)=>s+i.price,0),[chosenItems]);
-
-  const handleSelect = (groupId, optionId)=>{
-    const current = selected[groupId] || [];
-    if(current.includes(optionId)){
-      setSelected(prev=>({...prev,[groupId]:current.filter(i=>i!==optionId)}));
-    } else {
-      setSelected(prev=>({...prev,[groupId]:[...current,optionId]}));
-    }
-  };
-
-  return (
-    <div className="min-h-screen">
-      <Header />
-      <div className="max-w-3xl mx-auto p-4 sm:p-6">
-        <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8">
-          {step==="select" && <SelectServices 
-            selected={selected} 
-            onSelect={handleSelect} 
-            total={total} 
-            onConfirm={()=>setStep("review")}
-            deliveryChoice={deliveryChoice}
-            setDeliveryChoice={setDeliveryChoice}
-          />}
-          {step==="review" && <Review items={chosenItems} total={total} onBack={()=>setStep("select")} onConfirm={()=>setStep("pay")} />}
-          {step==="pay" && <Payment items={chosenItems} total={total} onBack={()=>setStep("review")} onPaid={()=>setStep("success")} />}
-          {step==="success" && <Success total={total} onNewOrder={()=>{setSelected({}); setStep("select"); setDeliveryChoice("pickup_drop");}} />}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Header(){
-  return (
-    <header className="w-full py-6" style={{background:COLORS.primary}}>
-      <div className="max-w-3xl mx-auto px-6 flex items-center gap-4">
-        <img src="my-logo.png" alt="โลโก้ร้าน NEKO WASH" className="w-20 sm:w-24"/>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-wide">NEKO WASH - บริการฝากซักอบผ้า</h1>
-          <p className="text-white/90 mt-1">เมนูการให้บริการ - NEKO WASH MUKDAHAN</p>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function SelectServices({selected,onSelect,onConfirm,total,deliveryChoice,setDeliveryChoice}){
-  return (
-    <div>
-      <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">ตัวเลือกการบริการ</h2>
-      <div className="space-y-4">
-        {SERVICES.map(group=>(
-          <div key={group.id} className="rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
-            <h3 className="font-semibold text-gray-800 mb-3">{group.title}</h3>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {group.options.map(opt=>{
-                const isSelected = selected[group.id]?.includes(opt.id);
-                return (
-                  <label key={opt.id} className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 cursor-pointer transition-shadow ${isSelected?"border-transparent shadow-md":"border-gray-200 hover:shadow-sm"}`} style={{background:isSelected?COLORS.accent:"#fff"}}>
-                    <div className="flex items-center gap-3">
-                      <input type="checkbox" className="h-5 w-5 rounded-md border-gray-300" checked={isSelected||false} onChange={()=>onSelect(group.id,opt.id)} />
-                      <span className="text-gray-800">{opt.name}</span>
-                    </div>
-                    <span className="font-semibold text-gray-900">{opt.price} บาท</span>
-                  </label>
-                );
-              })}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar p-0 d-none d-md-block fixed-top" style="height:100vh; z-index:1000;">
+            <div class="p-4 text-center">
+                <div class="bg-white rounded-circle d-inline-flex justify-content-center align-items-center mb-2 shadow-sm" style="width: 70px; height: 70px;">
+                    <i class="fa-solid fa-paw fa-2x" style="color:#2d6a4f"></i>
+                </div>
+                <h5 class="fw-bold mt-2">หว้านใหญ่<br>เพ็ท มาร์ท</h5>
+                <span class="badge bg-warning text-dark rounded-pill">V.6.3 Stable Bill</span>
             </div>
-          </div>
-        ))}
-
-        <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-          <div className="mb-2 text-gray-700 font-medium">ตัวเลือกจัดส่ง</div>
-          <div className="flex gap-3 flex-wrap">
-            {DELIVERY.map(d=>(
-              <label key={d.id} className={`flex-1 rounded-2xl border px-4 py-3 cursor-pointer text-center transition-shadow ${deliveryChoice===d.id?"border-transparent shadow-md":"border-gray-200 hover:shadow-sm"}`} style={{background:deliveryChoice===d.id?COLORS.accent:"#fff"}}>
-                <input type="radio" name="delivery" className="hidden" checked={deliveryChoice===d.id} onChange={()=>setDeliveryChoice(d.id)} />
-                <div className="font-semibold text-gray-900">{d.name}</div>
-                <div className="text-gray-800">{d.price} บาท</div>
-              </label>
-            ))}
-          </div>
-          <p className="text-xs text-gray-500 mt-1">* เลือกรูปแบบการบริการ</p>
+            <nav class="nav flex-column pe-2">
+                <a class="nav-link active" onclick="showSection('dashboard')"><i class="fa-solid fa-chart-pie me-2"></i> ภาพรวมร้าน</a>
+                <a class="nav-link" onclick="showSection('pos')"><i class="fa-solid fa-cash-register me-2"></i> ขายหน้าร้าน (POS)</a>
+                <a class="nav-link" onclick="showSection('history')"><i class="fa-solid fa-clock-rotate-left me-2"></i> ประวัติการขาย</a>
+                <a class="nav-link" onclick="showSection('purchase')"><i class="fa-solid fa-truck-ramp-box me-2"></i> รับสินค้าเข้า</a>
+                <a class="nav-link" onclick="showSection('products')"><i class="fa-solid fa-boxes-stacked me-2"></i> ฐานข้อมูลสินค้า</a>
+                <a class="nav-link" onclick="showSection('settings')"><i class="fa-solid fa-gear me-2"></i> ตั้งค่า/สำรองข้อมูล</a>
+            </nav>
         </div>
-      </div>
-      <div className="flex items-center justify-between mt-6">
-        <div className="text-lg font-semibold">รวมทั้งหมด: <span className="text-gray-900">{total}</span> บาท</div>
-        <Button onClick={onConfirm}>ยืนยันการเลือก</Button>
-      </div>
+
+        <div class="col-md-10 offset-md-2 p-4">
+            <div class="d-md-none mb-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-success"><i class="fa-solid fa-paw"></i> หว้านใหญ่ เพ็ท มาร์ท</h5>
+                <button class="btn btn-green btn-sm" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i> เมนู</button>
+            </div>
+            <div id="mobileMenu" class="d-md-none bg-white shadow p-3 rounded mb-3" style="display:none;">
+                <a class="d-block p-2 text-dark text-decoration-none border-bottom" onclick="showSection('pos')">🛒 ขายหน้าร้าน</a>
+                <a class="d-block p-2 text-dark text-decoration-none" onclick="showSection('dashboard')">📊 ภาพรวม</a>
+            </div>
+
+            <div id="dashboard" class="section">
+                <h3 class="mb-4 text-secondary"><i class="fa-solid fa-chart-simple"></i> ภาพรวมวันนี้</h3>
+                <div class="row g-3">
+                    <div class="col-md-4"><div class="card card-custom p-4 border-start border-5 border-primary">
+                        <small class="text-muted text-uppercase fw-bold">ยอดขายรวม</small>
+                        <h2 id="totalSales" class="fw-bold text-primary mb-0">0 ฿</h2>
+                    </div></div>
+                    <div class="col-md-4"><div class="card card-custom p-4 border-start border-5 border-success">
+                        <small class="text-muted text-uppercase fw-bold">กำไรสุทธิ</small>
+                        <h2 id="netProfit" class="fw-bold text-success mb-0">0 ฿</h2>
+                    </div></div>
+                    <div class="col-md-4"><div class="card card-custom p-4 border-start border-5 border-warning">
+                        <small class="text-muted text-uppercase fw-bold">มูลค่าสต๊อกคงเหลือ</small>
+                        <h2 id="totalStockValue" class="fw-bold text-warning mb-0">0 ฿</h2>
+                    </div></div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-8">
+                        <div class="card card-custom p-3 h-100">
+                            <h5 class="mb-3">📈 สถิติยอดขายล่าสุด</h5>
+                            <canvas id="salesChart" style="max-height: 300px;"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card card-custom p-3 h-100">
+                            <h5 class="text-danger mb-3"><i class="fa-solid fa-triangle-exclamation"></i> สินค้าใกล้หมด</h5>
+                            <ul id="lowStockList" class="list-group list-group-flush small"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pos" class="section" style="display:none;">
+                <div class="row h-100">
+                    <div class="col-md-8">
+                        <div class="d-flex gap-2 mb-3 align-items-center">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                <input type="text" id="searchPos" class="form-control border-start-0 ps-0" placeholder="พิมพ์ชื่อสินค้า..." onkeyup="renderPOS()">
+                            </div>
+                        </div>
+                        <div class="row g-2" id="productGrid"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card card-custom p-0 h-100 d-flex flex-column shadow-sm">
+                            <div class="p-3 bg-success text-white rounded-top d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fa-solid fa-basket-shopping"></i> ตะกร้า</h5>
+                                <span class="badge bg-white text-success" id="cartCount">0</span>
+                            </div>
+                            <div class="flex-grow-1 overflow-auto p-2" id="cartItems" style="background-color: #f8f9fa; max-height: 55vh;"></div>
+                            <div class="p-3 border-top bg-white rounded-bottom">
+                                <div class="d-flex justify-content-between align-items-end mb-2">
+                                    <small class="text-muted">รวมทั้งสิ้น</small>
+                                    <h3 class="text-success fw-bold mb-0" id="cartTotal">0 ฿</h3>
+                                </div>
+                                <button class="btn btn-green w-100 py-3 fw-bold shadow-sm mb-2" onclick="checkout()">
+                                    <i class="fa-solid fa-check-circle"></i> รับเงิน (F2)
+                                </button>
+                                <button class="btn btn-outline-danger w-100 btn-sm" onclick="clearCart()">ล้างรายการ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="purchase" class="section" style="display:none;">
+                <h3 class="mb-4">🚚 รับสินค้าเข้าสต๊อก</h3>
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="card card-custom p-4">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">เลือกสินค้า</label>
+                                <select id="purchase-product" class="form-select" onchange="updatePurchaseUnitCost()"><option value="">-- ค้นหาสินค้า --</option></select>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label class="form-label text-muted small">จำนวน (ชิ้น)</label>
+                                    <input type="number" id="purchase-qty" class="form-control" placeholder="0">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label text-muted small">ทุน/หน่วย (บาท)</label>
+                                    <input type="number" id="purchase-cost" class="form-control" placeholder="0.00">
+                                </div>
+                            </div>
+                            <button class="btn btn-green w-100" onclick="confirmPurchase()"><i class="fa-solid fa-save"></i> บันทึกรับของ</button>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="card card-custom p-4">
+                            <h6 class="text-muted mb-3">ประวัติการรับของล่าสุด</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm text-center align-middle">
+                                    <thead class="table-light"><tr><th>วันที่</th><th>สินค้า</th><th>จำนวน</th><th>ทุน/หน่วย</th></tr></thead>
+                                    <tbody id="purchaseHistoryTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="products" class="section" style="display:none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>📦 ฐานข้อมูลสินค้า</h3>
+                    <button class="btn btn-green shadow-sm" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า</button>
+                </div>
+                <div class="card card-custom p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-secondary small">
+                                <tr><th class="ps-4">สินค้า</th><th>รูปแบบการขาย</th><th>ต้นทุน/หน่วย</th><th>คงเหลือ</th><th class="text-end pe-4">จัดการ</th></tr>
+                            </thead>
+                            <tbody id="stockTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings" class="section" style="display:none;">
+                <h3 class="mb-4">⚙️ ตั้งค่าระบบ</h3>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card card-custom p-5 text-center h-100">
+                            <i class="fa-solid fa-cloud-arrow-down fa-3x text-primary mb-3"></i>
+                            <h4>สำรองข้อมูล (Backup)</h4>
+                            <p class="text-muted small">โหลดไฟล์ข้อมูลเก็บไว้ในเครื่อง</p>
+                            <button class="btn btn-outline-primary" onclick="exportData()">ดาวน์โหลดไฟล์ JSON</button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card card-custom p-5 text-center h-100">
+                            <i class="fa-solid fa-trash-can fa-3x text-danger mb-3"></i>
+                            <h4>ล้างข้อมูลทั้งหมด</h4>
+                            <p class="text-muted small">เริ่มต้นระบบใหม่ (ข้อมูลเก่าจะหายไป)</p>
+                            <button class="btn btn-danger text-white" onclick="clearAllData()">ล้างข้อมูล</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="history" class="section" style="display:none;">
+                <h3 class="mb-4">📜 ประวัติการขาย</h3>
+                <div class="card card-custom p-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr><th>เวลา</th><th>เลขที่บิล</th><th>ยอดรวม</th><th>จัดการ</th></tr>
+                            </thead>
+                            <tbody id="historyTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
-  );
-}
+</div>
 
-function Review({items,total,onBack,onConfirm}) {
-  const [selectedQty, setSelectedQty] = React.useState(() => {
-    const init = {};
-    items.forEach(it => {
-      if(!it.id.startsWith("pickup") && !it.id.startsWith("self")) init[it.id] = 1;
-      else init[it.id] = 1; // ส่งค่าคงที่สำหรับบริการจัดส่ง
-    });
-    return init;
-  });
+<script>
+    // --- Database ---
+    let products = JSON.parse(localStorage.getItem('products_v6')) || [];
+    let transactions = JSON.parse(localStorage.getItem('transactions_v6')) || [];
+    let purchases = JSON.parse(localStorage.getItem('purchases_v6')) || [];
+    let cart = [];
 
-  const updateQty = (id, value) => {
-    const v = Math.max(1, Math.min(99, Number(value)));
-    setSelectedQty(prev => ({ ...prev, [id]: v }));
-  };
+    // --- AUTO IMAGE ---
+    function generateAvatar(text) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 200; canvas.height = 200;
+        const colors = ['#f4a261', '#2a9d8f', '#e76f51', '#264653', '#e9c46a', '#8ecae6'];
+        let hash = 0; for (let i=0; i<text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
+        ctx.fillStyle = colors[Math.abs(hash) % colors.length];
+        ctx.fillRect(0, 0, 200, 200);
+        const initials = text ? text.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : "?";
+        ctx.fillStyle = 'white'; ctx.font = 'bold 100px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(initials, 100, 100);
+        return canvas.toDataURL();
+    }
 
-  const totalPrice = items.reduce((sum, it) => sum + it.price * selectedQty[it.id], 0);
+    // --- Navigation ---
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(el => el.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        event.target.closest('.nav-link')?.classList.add('active');
+        document.getElementById('mobileMenu').style.display = 'none';
+        
+        if(id === 'pos') renderPOS();
+        if(id === 'products') renderStock();
+        if(id === 'history') renderHistory();
+        if(id === 'purchase') renderPurchaseSection();
+        if(id === 'dashboard') renderDashboard();
+    }
+    function toggleMobileMenu() {
+        let m = document.getElementById('mobileMenu');
+        m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+    function saveData() {
+        localStorage.setItem('products_v6', JSON.stringify(products));
+        localStorage.setItem('transactions_v6', JSON.stringify(transactions));
+        localStorage.setItem('purchases_v6', JSON.stringify(purchases));
+        renderDashboard();
+    }
 
-  const downloadReceipt = () => {
-    const receiptEl = document.getElementById("receipt");
-    if(!receiptEl) return;
-    html2canvas(receiptEl,{backgroundColor:"#fff",scale:2}).then(canvas=>{
-      canvas.toBlob(function(blob){
-        const link=document.createElement("a");
-        link.href=URL.createObjectURL(blob);
-        link.download=`receipt_${Date.now()}.png`;
-        document.body.appendChild(link);
+    // --- POS System ---
+    function renderPOS() {
+        const grid = document.getElementById('productGrid');
+        const search = document.getElementById('searchPos').value.toLowerCase();
+        grid.innerHTML = '';
+        const filtered = products.filter(p => p.name.toLowerCase().includes(search));
+        
+        if(filtered.length === 0) { grid.innerHTML = '<div class="col-12 text-center text-muted py-5">ไม่พบสินค้า</div>'; return; }
+
+        filtered.forEach(p => {
+            let opacity = p.stock <= 0 ? 'opacity-50 grayscale' : '';
+            let stockBadge = p.stock <= 0 ? '<span class="position-absolute top-50 start-50 translate-middle badge bg-danger shadow">สินค้าหมด</span>' : `<span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75 text-white" style="font-size:0.8rem">${p.stock} หน่วย</span>`;
+            let priceDisplay = '';
+            if(p.options && p.options.length > 0) {
+                let prices = p.options.map(o => o.price);
+                priceDisplay = (Math.min(...prices) === Math.max(...prices)) ? `${prices[0]} ฿` : `${Math.min(...prices)} - ${Math.max(...prices)} ฿`;
+            } else { priceDisplay = 'ยังไม่ตั้งราคา'; }
+
+            grid.innerHTML += `
+                <div class="col-6 col-md-4 col-lg-3" onclick="openOptionSelect(${p.id})">
+                    <div class="card product-card h-100 ${opacity}">
+                        <div class="position-relative">
+                            <img src="${p.img}" class="product-img w-100" onerror="this.src=generateAvatar('${p.name}')">
+                            ${stockBadge}
+                        </div>
+                        <div class="card-body p-2 text-center">
+                            <h6 class="card-title text-truncate small mb-1 fw-bold">${p.name}</h6>
+                            <p class="text-success fw-bold mb-0">${priceDisplay}</p>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        renderCart();
+    }
+
+    function openOptionSelect(id) {
+        const p = products.find(x => x.id === id);
+        if(!p || p.stock <= 0) return Swal.fire({ icon: 'error', title: 'สินค้าหมด!', timer: 1000, showConfirmButton: false });
+        if (!p.options || p.options.length === 0) return Swal.fire('เตือน', 'ยังไม่ได้ตั้งราคาขาย กรุณาไปตั้งค่าที่เมนูฐานข้อมูลสินค้า', 'warning');
+
+        if (p.options.length === 1) {
+            addToCart(p.id, 0);
+        } else {
+            // ใช้ SweetAlert เป็นเมนูเลือก เพื่อความชัวร์ในทุกอุปกรณ์
+            let optionsHtml = '<div class="d-grid gap-2">';
+            p.options.forEach((opt, idx) => {
+                optionsHtml += `<button class="btn btn-outline-success text-start d-flex justify-content-between p-3" onclick="swal.clickConfirm(); addToCart(${p.id}, ${idx})">
+                    <span>${opt.name} <small class="text-muted">(ตัดสต๊อก ${opt.cutStock})</small></span>
+                    <span class="fw-bold">${opt.price} ฿</span>
+                </button>`;
+            });
+            optionsHtml += '</div>';
+
+            Swal.fire({
+                title: p.name,
+                html: optionsHtml,
+                showConfirmButton: false,
+                showCloseButton: true
+            });
+        }
+    }
+
+    function addToCart(productId, optionIdx) {
+        const p = products.find(x => x.id === productId);
+        const opt = p.options[optionIdx];
+        let inCartQty = 0;
+        cart.forEach(c => { if(c.id === productId) inCartQty += (c.cutStock * c.qty); });
+
+        if (p.stock < (inCartQty + opt.cutStock)) return Swal.fire({ icon: 'warning', title: 'สินค้าไม่พอ', text: `เหลือ ${p.stock} ชิ้น (ต้องการ ${opt.cutStock})` });
+
+        const exist = cart.find(c => c.id === productId && c.optionName === opt.name);
+        if(exist) exist.qty++;
+        else cart.push({ id: p.id, name: p.name, optionName: opt.name, price: opt.price, cutStock: opt.cutStock, qty: 1 });
+        
+        renderCart();
+        const toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1000 });
+        toast.fire({ icon: 'success', title: 'เพิ่มลงตะกร้าแล้ว' });
+    }
+
+    function renderCart() {
+        const div = document.getElementById('cartItems');
+        if(cart.length === 0) {
+            div.innerHTML = '<div class="text-center text-muted mt-5 opacity-50"><i class="fa-solid fa-basket-shopping fa-3x mb-3"></i><br>ยังไม่มีสินค้า</div>';
+            document.getElementById('cartTotal').innerText = '0 ฿';
+            document.getElementById('cartCount').innerText = '0';
+            return;
+        }
+        
+        let html = '<ul class="list-group list-group-flush small">';
+        let total = 0;
+        let count = 0;
+        cart.forEach((c, i) => {
+            total += c.price * c.qty;
+            count += c.qty;
+            html += `
+                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-1">
+                    <div class="text-truncate" style="max-width: 140px;">
+                        <span class="fw-bold">${c.name}</span><br>
+                        <span class="badge bg-secondary text-white rounded-pill" style="font-size:0.7em">${c.optionName}</span>
+                        <span class="text-muted" style="font-size:0.8em">${c.price} x ${c.qty}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold">${(c.price*c.qty).toLocaleString()}</span>
+                        <i class="fa-solid fa-trash text-danger" style="cursor:pointer" onclick="cart.splice(${i},1);renderCart()"></i>
+                    </div>
+                </li>`;
+        });
+        div.innerHTML = html + '</ul>';
+        document.getElementById('cartTotal').innerText = total.toLocaleString() + ' ฿';
+        document.getElementById('cartCount').innerText = count;
+    }
+    function clearCart() { cart = []; renderCart(); }
+
+    // --- CHECKOUT PROCESS (CORE FIX) ---
+    function checkout() {
+        if(cart.length === 0) return;
+        
+        // 1. หน้าต่างยืนยันการรับเงิน (Confirm Payment)
+        Swal.fire({
+            title: 'ยืนยันยอดรับเงิน',
+            html: `<h1 class="text-success fw-bold">${document.getElementById('cartTotal').innerText}</h1>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '✅ รับเงินเรียบร้อย',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#2d6a4f'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                processCheckout();
+            }
+        });
+    }
+
+    function processCheckout() {
+        let totalCost = 0, totalSale = 0;
+        cart.forEach(c => {
+            let p = products.find(x => x.id === c.id);
+            if(p) { 
+                let deductAmount = c.cutStock * c.qty;
+                p.stock -= deductAmount; 
+                totalCost += (p.cost * deductAmount);
+                totalSale += (c.price * c.qty);
+            }
+        });
+        
+        let billId = Date.now().toString().slice(-6);
+        let txn = { id: billId, date: new Date().toLocaleString('th-TH'), items: [...cart], total: totalSale, profit: totalSale - totalCost };
+        transactions.push(txn);
+        saveData();
+        
+        cart = []; renderCart(); renderPOS();
+        
+        // 2. แสดงบิลแบบ Digital (Digital Bill)
+        showDigitalBill(txn);
+    }
+
+    function showDigitalBill(txn) {
+        let itemsHtml = '';
+        txn.items.forEach(i => {
+            itemsHtml += `
+                <div class="bill-row">
+                    <span>${i.name} (${i.optionName}) x${i.qty}</span>
+                    <span>${(i.price * i.qty).toLocaleString()}</span>
+                </div>
+            `;
+        });
+
+        // ใช้ SweetAlert แสดงบิล เพื่อให้มั่นใจว่าเด้งทุกอุปกรณ์
+        Swal.fire({
+            html: `
+                <div class="bill-wrapper">
+                    <div class="bill-header">
+                        <strong>หว้านใหญ่ เพ็ท มาร์ท</strong><br>
+                        บริการส่งฟรีในพื้นที่!<br>
+                        วันที่: ${txn.date}<br>
+                        เลขบิล: ${txn.id}
+                    </div>
+                    ${itemsHtml}
+                    <div class="bill-total">
+                        <span>ยอดรวมสุทธิ</span>
+                        <span>${txn.total.toLocaleString()} ฿</span>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">แคปหน้าจอหรือกดคัดลอกส่งให้ลูกค้า</small>
+                </div>
+            `,
+            showConfirmButton: true,
+            confirmButtonText: 'ปิด',
+            showDenyButton: true,
+            denyButtonText: '📋 คัดลอกบิล',
+            denyButtonColor: '#0d6efd'
+        }).then((res) => {
+            if(res.isDenied) {
+                // Logic คัดลอก Text
+                let textBill = `[บิลเงินสด] หว้านใหญ่ เพ็ท มาร์ท\nวันที่: ${txn.date}\nเลขบิล: ${txn.id}\n------------------\n`;
+                txn.items.forEach(i => { textBill += `${i.name} (${i.optionName}) x${i.qty} = ${(i.price*i.qty).toLocaleString()}\n`; });
+                textBill += `------------------\nยอดรวม: ${txn.total.toLocaleString()} บาท\nขอบคุณที่อุดหนุนครับ!`;
+                
+                navigator.clipboard.writeText(textBill);
+                Swal.fire('คัดลอกแล้ว', '', 'success');
+            }
+        });
+    }
+
+    // --- History & Other Utils ---
+    function renderHistory() {
+        const tbody = document.getElementById('historyTable');
+        tbody.innerHTML = '';
+        transactions.slice().reverse().slice(0, 50).forEach(t => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><small>${t.date}</small></td>
+                    <td>${t.id}</td>
+                    <td>${t.total.toLocaleString()}</td>
+                    <td><button class="btn btn-sm btn-outline-primary" onclick='showDigitalBill(${JSON.stringify(t)})'>ดูบิล</button></td>
+                </tr>`;
+        });
+    }
+
+    // --- Product Modal Logic ---
+    async function openProductModal(id = null) {
+        let p = id ? products.find(x => x.id === id) : { name: '', cost: '', stock: '', img: '', options: [] };
+        if(!p.options) p.options = [];
+        if(!p.img) p.img = generateAvatar(p.name || "?");
+
+        const { value: formValues } = await Swal.fire({
+            title: id ? 'แก้ไขข้อมูลสินค้า' : 'เพิ่มสินค้าใหม่',
+            width: 600,
+            html: `
+                <div class="text-start font-sarabun">
+                    <div class="text-center mb-3">
+                        <img id="preview-img" src="${p.img}" class="rounded border shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                        <br>
+                        <label class="btn btn-sm btn-light mt-2 border">
+                            <i class="fa-solid fa-camera"></i> เปลี่ยนรูป
+                            <input type="file" id="swal-file" hidden accept="image/*" onchange="previewImage()">
+                        </label>
+                    </div>
+                    <div class="mb-3"><label class="fw-bold small">ชื่อสินค้า</label><input id="swal-name" class="form-control" value="${p.name}" placeholder="ชื่อสินค้า"></div>
+                    <div class="row mb-3">
+                        <div class="col"><label class="fw-bold small">ต้นทุนเฉลี่ย/หน่วย</label><input id="swal-cost" type="number" class="form-control" value="${p.cost}"></div>
+                        <div class="col"><label class="fw-bold small text-success">สต๊อกคงเหลือ</label><input id="swal-stock" type="number" class="form-control border-success" value="${p.stock}"></div>
+                    </div>
+                    <hr>
+                    <label class="fw-bold small mb-2"><i class="fa-solid fa-tags"></i> วิธีการขาย (ต้องมีอย่างน้อย 1 แบบ)</label>
+                    <div id="options-container">
+                        ${p.options.map(opt => `<div class="input-group mb-2 option-row"><input type="text" class="form-control opt-name" value="${opt.name}"><input type="number" class="form-control opt-price" value="${opt.price}"><input type="number" class="form-control opt-cut" value="${opt.cutStock}"><button class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button></div>`).join('')}
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary w-100 border-dashed" onclick="addOptionRow()">+ เพิ่มวิธีการขาย</button>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'บันทึก',
+            confirmButtonColor: '#2d6a4f',
+            preConfirm: () => {
+                const newOptions = [];
+                document.querySelectorAll('.option-row').forEach(row => {
+                    const name = row.querySelector('.opt-name').value;
+                    const price = parseInt(row.querySelector('.opt-price').value);
+                    const cut = parseInt(row.querySelector('.opt-cut').value);
+                    if(name && price && cut) newOptions.push({ name, price, cutStock: cut });
+                });
+                return {
+                    name: document.getElementById('swal-name').value,
+                    cost: parseFloat(document.getElementById('swal-cost').value) || 0,
+                    stock: parseInt(document.getElementById('swal-stock').value) || 0,
+                    imgSrc: document.getElementById('preview-img').src,
+                    options: newOptions
+                }
+            }
+        });
+
+        if (formValues) {
+            if (formValues.options.length === 0) return Swal.fire('ต้องมีวิธีการขายอย่างน้อย 1 แบบ');
+            if (id) Object.assign(p, { ...formValues, img: formValues.imgSrc });
+            else products.push({ id: Date.now(), ...formValues, img: formValues.imgSrc });
+            saveData(); renderStock(); renderPOS();
+        }
+    }
+    
+    window.addOptionRow = function() {
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 option-row';
+        div.innerHTML = `<input type="text" class="form-control opt-name" placeholder="ชื่อ"><input type="number" class="form-control opt-price" placeholder="ราคา"><input type="number" class="form-control opt-cut" placeholder="ตัดสต๊อก" value="1"><button class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button>`;
+        document.getElementById('options-container').appendChild(div);
+    }
+    window.previewImage = function() {
+        const file = document.getElementById('swal-file').files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => document.getElementById('preview-img').src = e.target.result;
+            reader.readAsDataURL(file);
+        }
+    }
+    function deleteProduct(id) {
+        Swal.fire({ title: 'ลบสินค้านี้?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'ลบเลย' })
+        .then((r) => { if(r.isConfirmed) { products = products.filter(p => p.id !== id); saveData(); renderStock(); renderPOS(); } });
+    }
+    function renderStock() {
+        const tbody = document.getElementById('stockTable');
+        tbody.innerHTML = '';
+        products.forEach(p => {
+            let optHtml = p.options ? p.options.map(o => `<span class="badge bg-light text-dark border me-1 mb-1">${o.name}: ${o.price}บ.</span>`).join(' ') : '<span class="text-danger">ยังไม่ตั้งราคา</span>';
+            tbody.innerHTML += `<tr><td class="ps-4"><div class="d-flex align-items-center"><img src="${p.img}" class="rounded border" style="width:40px; height:40px; object-fit:cover; margin-right:10px;"><div class="text-truncate" style="max-width: 150px;"><strong>${p.name}</strong></div></div></td><td>${optHtml}</td><td>${p.cost}</td><td class="${p.stock<=5?'text-danger fw-bold':''}">${p.stock}</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-secondary me-1" onclick="openProductModal(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+        });
+    }
+
+    // --- Purchase Logic & Others ---
+    function renderPurchaseSection() {
+        const sel = document.getElementById('purchase-product');
+        sel.innerHTML = '<option value="">-- เลือกสินค้า --</option>';
+        products.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
+        const tbody = document.getElementById('purchaseHistoryTable');
+        tbody.innerHTML = '';
+        purchases.slice().reverse().slice(0,8).forEach(p => {
+            tbody.innerHTML += `<tr><td>${p.date.split(' ')[0]}</td><td>${p.productName}</td><td class="text-success">+${p.qty}</td><td>${p.unitCost}</td></tr>`;
+        });
+    }
+    function updatePurchaseUnitCost() {
+        let p = products.find(x => x.id == document.getElementById('purchase-product').value);
+        if(p) document.getElementById('purchase-cost').value = p.cost;
+    }
+    function confirmPurchase() {
+        let id = parseInt(document.getElementById('purchase-product').value);
+        let qty = parseInt(document.getElementById('purchase-qty').value);
+        let cost = parseFloat(document.getElementById('purchase-cost').value);
+        if(!id || !qty || isNaN(cost)) return Swal.fire({icon:'error', title:'ข้อมูลไม่ครบ'});
+        let p = products.find(x => x.id === id);
+        let oldVal = p.stock * p.cost;
+        let newVal = qty * cost;
+        p.stock += qty;
+        p.cost = parseFloat(((oldVal + newVal) / p.stock).toFixed(2));
+        purchases.push({ date: new Date().toLocaleString('th-TH'), productName: p.name, qty, unitCost: cost });
+        saveData(); renderPurchaseSection();
+        Swal.fire({icon:'success', title: 'เพิ่มสต็อกเรียบร้อย', timer: 1500, showConfirmButton:false});
+        document.getElementById('purchase-qty').value = '';
+    }
+    function exportData() {
+        const dataStr = JSON.stringify({ products, transactions, purchases });
+        const link = document.createElement('a');
+        link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        link.download = 'wanyai_pos_backup.json';
         link.click();
-        document.body.removeChild(link);
-      },"image/png");
-    });
-  };
+    }
+    function clearAllData() {
+        Swal.fire({title: 'ล้างข้อมูล?', text: "หายหมดนะ!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33'})
+        .then((r) => { if(r.isConfirmed) { localStorage.clear(); location.reload(); } });
+    }
+    function renderDashboard() {
+        let totalSales=0, netProfit=0, stockVal=0;
+        transactions.forEach(t => { totalSales += t.total; netProfit += t.profit; });
+        products.forEach(p => stockVal += (p.stock * p.cost));
+        document.getElementById('totalSales').innerText = totalSales.toLocaleString() + ' ฿';
+        document.getElementById('netProfit').innerText = netProfit.toLocaleString() + ' ฿';
+        document.getElementById('totalStockValue').innerText = stockVal.toLocaleString() + ' ฿';
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        if(window.salesChartInstance) window.salesChartInstance.destroy();
+        let recent = transactions.slice().reverse().slice(0, 7).reverse();
+        window.salesChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: recent.map(t => t.date.split(' ')[1]), datasets: [{ label: 'ยอดขาย', data: recent.map(t => t.total), backgroundColor: '#2d6a4f', borderRadius: 5 }] },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+        let list = document.getElementById('lowStockList'); list.innerHTML = '';
+        products.filter(p => p.stock <= 5).forEach(p => list.innerHTML += `<li class="list-group-item d-flex justify-content-between text-danger px-0"><span>${p.name}</span><strong>${p.stock}</strong></li>`);
+    }
 
-  return (
-    <div>
-      <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">สรุปรายการบริการที่เลือก</h2>
-      <div id="receipt">
-        <ul className="divide-y divide-gray-100 rounded-2xl border border-gray-100 overflow-hidden">
-          {items.map(it => (
-            <li key={it.id} className="flex items-center justify-between px-4 py-3 bg-white gap-2">
-              <span className="text-gray-800 flex-1">{it.name}</span>
-              {!it.id.startsWith("pickup") && !it.id.startsWith("self") && (
-                <input 
-                  type="number" 
-                  min="1" 
-                  max="99" 
-                  value={selectedQty[it.id]} 
-                  onChange={(e)=>updateQty(it.id, e.target.value)}
-                  className="w-16 px-2 py-1 border rounded text-center"
-                />
-              )}
-              <span className="font-semibold text-gray-900">{it.price * selectedQty[it.id]} บาท</span>
-            </li>
-          ))}
-          <li className="flex items-center justify-between px-4 py-4 bg-gray-50 font-semibold">
-            <span>รวม</span>
-            <span className="text-gray-900">{totalPrice} บาท</span>
-          </li>
-        </ul>
-      </div>
-
-      <div className="flex flex-col md:flex-row md:flex-wrap gap-3 mt-4">
-        <Button variant="ghost" onClick={onBack} className="flex-1 md:flex-auto">ย้อนกลับไปแก้ไข</Button>
-        <Button onClick={onConfirm} className="flex-1 md:flex-auto">ยืนยันและไปชำระเงิน</Button>
-        <button onClick={downloadReceipt} className="rounded-full px-6 py-3 bg-green-600 text-white font-medium shadow hover:shadow-md flex-1 md:flex-auto">ดาวน์โหลดบิล</button>
-      </div>
-    </div>
-  );
-}
-
-function Payment({items,total,onBack,onPaid}){
-  const qrFile="my-qr.jpg";
-  const [secondsLeft,setSecondsLeft] = React.useState(15*60);
-  const [expired,setExpired] = React.useState(false);
-
-  React.useEffect(()=>{
-    if(expired) return;
-    const interval = setInterval(()=>{
-      setSecondsLeft(prev=>{
-        if(prev<=1){ clearInterval(interval); setExpired(true); return 0;}
-        return prev-1;
-      });
-    },1000);
-    return ()=>clearInterval(interval);
-  },[expired]);
-
-  const formatTime = sec => {
-    const m = Math.floor(sec/60).toString().padStart(2,'0');
-    const s = (sec%60).toString().padStart(2,'0');
-    return `${m}:${s}`;
-  };
-
-  return (
-    <div>
-      <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4">ชำระเงิน</h2>
-      {!expired ? (
-        <div className="text-center bg-white rounded-3xl border border-gray-100 p-6">
-          <p className="text-gray-700 mb-2">เวลาที่เหลือ: {formatTime(secondsLeft)}</p>
-          <img src={qrFile} alt="QR Code" className="mx-auto rounded-2xl border-4 mb-4" style={{borderColor:COLORS.accent}} />
-          <p className="mt-2 text-gray-700">สแกนเพื่อชำระเงิน</p>
-          <p className="mt-1 font-medium text-gray-800">เมื่อโอนเสร็จเรียบร้อยแล้ว รบกวนแจ้งหลักฐานการโอนผ่านแชทไลน์</p>
-        </div>
-      ) : (
-        <div className="text-center bg-white rounded-3xl border border-gray-100 p-6">
-          <p className="text-red-600 font-semibold text-lg">ชำระไม่สำเร็จ</p>
-          <Button onClick={onBack}>ทำรายการใหม่</Button>
-        </div>
-      )}
-      {!expired && <div className="flex gap-3 mt-6">
-        <Button variant="ghost" onClick={onBack}>ย้อนกลับ</Button>
-        <Button onClick={onPaid}>ฉันได้ชำระเงินแล้ว</Button>
-      </div>}
-    </div>
-  );
-}
-
-function Success({total,onNewOrder}){
-  return (
-    <div className="text-center">
-      <div className="bg-white rounded-3xl border border-gray-100 p-8">
-        <div className="mx-auto mb-4 h-14 w-14 rounded-full flex items-center justify-center" style={{background:COLORS.accent}}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={COLORS.primary} className="h-8 w-8">
-            <path fillRule="evenodd" d="M2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75 2.25 17.385 2.25 12zm13.36-2.56a.75.75 0 10-1.22-.88l-3.6 5a.75.75 0 01-1.13.1l-1.7-1.7a.75.75 0 10-1.06 1.06l2.1 2.1a1.75 1.75 0 002.64-.23l3.97-5.45z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-1">ชำระเงินสำเร็จ</h3>
-        <p className="text-gray-700">ขอบคุณที่ใช้บริการ NEKO WASH</p>
-        <p className="text-gray-700 mt-2">ยอดรวม {total} บาท</p>
-      </div>
-      <Button className="mt-6" onClick={onNewOrder}>สั่งบริการใหม่อีกครั้ง</Button>
-    </div>
-  );
-}
-
-function Button({children,onClick,variant="primary",className=""}){
-  if(variant==="ghost"){
-    return <button onClick={onClick} className={`rounded-full px-6 py-3 border transition shadow-sm hover:shadow ${className}`} style={{borderColor:COLORS.primary,color:COLORS.primary,background:"#fff"}}>{children}</button>;
-  }
-  return <button onClick={onClick} className={`rounded-full px-6 py-3 font-medium transition shadow hover:shadow-md ${className}`} style={{background:COLORS.primary,color:"#fff"}}>{children}</button>;
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    renderDashboard();
 </script>
 </body>
 </html>
