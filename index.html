@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบริหารร้าน หว้านใหญ่ เพ็ท มาร์ท (V.6.3 Stable Bill)</title>
+    <title>ระบบบริหารร้าน หว้านใหญ่ เพ็ท มาร์ท (V.6.4 GitHub Ready)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <style>
         body { background-color: #f0f7f4; font-family: 'Sarabun', sans-serif; }
@@ -24,8 +25,10 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
+        .option-btn { transition: 0.2s; border: 1px solid #ddd; }
+        .option-btn:hover { background-color: #e9ecef; border-color: #2d6a4f; transform: scale(1.02); }
         
-        /* Bill Style inside SweetAlert */
+        /* Bill Style */
         .bill-wrapper { font-family: 'Courier New', monospace; text-align: left; font-size: 14px; color: #333; background: #fff; padding: 10px; border: 1px dashed #999; }
         .bill-header { text-align: center; border-bottom: 1px dashed #333; padding-bottom: 10px; margin-bottom: 10px; }
         .bill-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
@@ -42,7 +45,7 @@
                     <i class="fa-solid fa-paw fa-2x" style="color:#2d6a4f"></i>
                 </div>
                 <h5 class="fw-bold mt-2">หว้านใหญ่<br>เพ็ท มาร์ท</h5>
-                <span class="badge bg-warning text-dark rounded-pill">V.6.3 Stable Bill</span>
+                <span class="badge bg-info text-dark rounded-pill">V.6.4 GitHub Ready</span>
             </div>
             <nav class="nav flex-column pe-2">
                 <a class="nav-link active" onclick="showSection('dashboard')"><i class="fa-solid fa-chart-pie me-2"></i> ภาพรวมร้าน</a>
@@ -222,6 +225,20 @@
     </div>
 </div>
 
+<div class="modal fade" id="optionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="optionModalTitle">เลือกแบบการขาย</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <div id="optionList" class="d-grid gap-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // --- Database ---
     let products = JSON.parse(localStorage.getItem('products_v6')) || [];
@@ -229,19 +246,49 @@
     let purchases = JSON.parse(localStorage.getItem('purchases_v6')) || [];
     let cart = [];
 
-    // --- AUTO IMAGE ---
+    // --- AUTO IMAGE GENERATOR (Core Function) ---
     function generateAvatar(text) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = 200; canvas.height = 200;
-        const colors = ['#f4a261', '#2a9d8f', '#e76f51', '#264653', '#e9c46a', '#8ecae6'];
+        
+        // Pastel Colors
+        const colors = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
         let hash = 0; for (let i=0; i<text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
         ctx.fillStyle = colors[Math.abs(hash) % colors.length];
         ctx.fillRect(0, 0, 200, 200);
-        const initials = text ? text.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : "?";
-        ctx.fillStyle = 'white'; ctx.font = 'bold 100px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        
+        // Initials Logic
+        let initials = "?";
+        if(text) {
+            const words = text.trim().split(' ');
+            if(words.length > 1) {
+                initials = (words[0][0] + words[1][0]).toUpperCase();
+            } else {
+                initials = text.substring(0, 2).toUpperCase();
+            }
+        }
+
+        ctx.fillStyle = '#555'; 
+        ctx.font = 'bold 80px Sarabun, Arial'; 
+        ctx.textAlign = 'center'; 
+        ctx.textBaseline = 'middle';
         ctx.fillText(initials, 100, 100);
+        
         return canvas.toDataURL();
+    }
+
+    // --- DATA INTEGRITY CHECK (Run on Load) ---
+    // Ensure all products have images. If not, generate them immediately and save.
+    let dataChanged = false;
+    products.forEach(p => {
+        if(!p.img || p.img === "" || p.img.includes('placehold.co')) {
+            p.img = generateAvatar(p.name);
+            dataChanged = true;
+        }
+    });
+    if(dataChanged) {
+        localStorage.setItem('products_v6', JSON.stringify(products));
     }
 
     // --- Navigation ---
@@ -291,7 +338,7 @@
                 <div class="col-6 col-md-4 col-lg-3" onclick="openOptionSelect(${p.id})">
                     <div class="card product-card h-100 ${opacity}">
                         <div class="position-relative">
-                            <img src="${p.img}" class="product-img w-100" onerror="this.src=generateAvatar('${p.name}')">
+                            <img src="${p.img}" class="product-img w-100">
                             ${stockBadge}
                         </div>
                         <div class="card-body p-2 text-center">
@@ -304,15 +351,16 @@
         renderCart();
     }
 
+    // --- MODAL & CART ---
     function openOptionSelect(id) {
         const p = products.find(x => x.id === id);
         if(!p || p.stock <= 0) return Swal.fire({ icon: 'error', title: 'สินค้าหมด!', timer: 1000, showConfirmButton: false });
-        if (!p.options || p.options.length === 0) return Swal.fire('เตือน', 'ยังไม่ได้ตั้งราคาขาย กรุณาไปตั้งค่าที่เมนูฐานข้อมูลสินค้า', 'warning');
+        if (!p.options || p.options.length === 0) return Swal.fire('เตือน', 'ยังไม่ได้ตั้งราคาขาย', 'warning');
 
         if (p.options.length === 1) {
             addToCart(p.id, 0);
         } else {
-            // ใช้ SweetAlert เป็นเมนูเลือก เพื่อความชัวร์ในทุกอุปกรณ์
+            // ใช้ SweetAlert เป็นเมนูเลือก
             let optionsHtml = '<div class="d-grid gap-2">';
             p.options.forEach((opt, idx) => {
                 optionsHtml += `<button class="btn btn-outline-success text-start d-flex justify-content-between p-3" onclick="swal.clickConfirm(); addToCart(${p.id}, ${idx})">
@@ -337,7 +385,7 @@
         let inCartQty = 0;
         cart.forEach(c => { if(c.id === productId) inCartQty += (c.cutStock * c.qty); });
 
-        if (p.stock < (inCartQty + opt.cutStock)) return Swal.fire({ icon: 'warning', title: 'สินค้าไม่พอ', text: `เหลือ ${p.stock} ชิ้น (ต้องการ ${opt.cutStock})` });
+        if (p.stock < (inCartQty + opt.cutStock)) return Swal.fire({ icon: 'warning', title: 'สินค้าไม่พอ', text: `เหลือ ${p.stock} ชิ้น` });
 
         const exist = cart.find(c => c.id === productId && c.optionName === opt.name);
         if(exist) exist.qty++;
@@ -345,7 +393,7 @@
         
         renderCart();
         const toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1000 });
-        toast.fire({ icon: 'success', title: 'เพิ่มลงตะกร้าแล้ว' });
+        toast.fire({ icon: 'success', title: 'เพิ่มแล้ว' });
     }
 
     function renderCart() {
@@ -382,17 +430,17 @@
     }
     function clearCart() { cart = []; renderCart(); }
 
-    // --- CHECKOUT PROCESS (CORE FIX) ---
+    // --- CHECKOUT PROCESS ---
     function checkout() {
         if(cart.length === 0) return;
         
-        // 1. หน้าต่างยืนยันการรับเงิน (Confirm Payment)
+        // 1. Confirm Dialog
         Swal.fire({
             title: 'ยืนยันยอดรับเงิน',
             html: `<h1 class="text-success fw-bold">${document.getElementById('cartTotal').innerText}</h1>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonText: '✅ รับเงินเรียบร้อย',
+            confirmButtonText: '✅ รับเงิน',
             cancelButtonText: 'ยกเลิก',
             confirmButtonColor: '#2d6a4f'
         }).then((result) => {
@@ -421,7 +469,7 @@
         
         cart = []; renderCart(); renderPOS();
         
-        // 2. แสดงบิลแบบ Digital (Digital Bill)
+        // 2. Show Bill
         showDigitalBill(txn);
     }
 
@@ -436,7 +484,6 @@
             `;
         });
 
-        // ใช้ SweetAlert แสดงบิล เพื่อให้มั่นใจว่าเด้งทุกอุปกรณ์
         Swal.fire({
             html: `
                 <div class="bill-wrapper">
@@ -452,29 +499,27 @@
                         <span>${txn.total.toLocaleString()} ฿</span>
                     </div>
                 </div>
-                <div class="mt-3">
-                    <small class="text-muted">แคปหน้าจอหรือกดคัดลอกส่งให้ลูกค้า</small>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">แคปหน้าจอเพื่อส่งให้ลูกค้า</small>
                 </div>
             `,
             showConfirmButton: true,
             confirmButtonText: 'ปิด',
             showDenyButton: true,
-            denyButtonText: '📋 คัดลอกบิล',
+            denyButtonText: 'คัดลอก',
             denyButtonColor: '#0d6efd'
         }).then((res) => {
             if(res.isDenied) {
-                // Logic คัดลอก Text
                 let textBill = `[บิลเงินสด] หว้านใหญ่ เพ็ท มาร์ท\nวันที่: ${txn.date}\nเลขบิล: ${txn.id}\n------------------\n`;
                 txn.items.forEach(i => { textBill += `${i.name} (${i.optionName}) x${i.qty} = ${(i.price*i.qty).toLocaleString()}\n`; });
                 textBill += `------------------\nยอดรวม: ${txn.total.toLocaleString()} บาท\nขอบคุณที่อุดหนุนครับ!`;
-                
                 navigator.clipboard.writeText(textBill);
                 Swal.fire('คัดลอกแล้ว', '', 'success');
             }
         });
     }
 
-    // --- History & Other Utils ---
+    // --- History ---
     function renderHistory() {
         const tbody = document.getElementById('historyTable');
         tbody.innerHTML = '';
@@ -489,7 +534,7 @@
         });
     }
 
-    // --- Product Modal Logic ---
+    // --- Product Logic ---
     async function openProductModal(id = null) {
         let p = id ? products.find(x => x.id === id) : { name: '', cost: '', stock: '', img: '', options: [] };
         if(!p.options) p.options = [];
@@ -577,7 +622,7 @@
         });
     }
 
-    // --- Purchase Logic & Others ---
+    // --- Purchase Logic ---
     function renderPurchaseSection() {
         const sel = document.getElementById('purchase-product');
         sel.innerHTML = '<option value="">-- เลือกสินค้า --</option>';
@@ -607,11 +652,12 @@
         Swal.fire({icon:'success', title: 'เพิ่มสต็อกเรียบร้อย', timer: 1500, showConfirmButton:false});
         document.getElementById('purchase-qty').value = '';
     }
+
     function exportData() {
         const dataStr = JSON.stringify({ products, transactions, purchases });
         const link = document.createElement('a');
         link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        link.download = 'wanyai_pos_backup.json';
+        link.download = 'wanyai_pos_v6_backup.json';
         link.click();
     }
     function clearAllData() {
