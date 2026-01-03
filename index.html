@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบริหารร้าน หว้านใหญ่ เพ็ท มาร์ท (V.6.4 GitHub Ready)</title>
+    <title>ระบบบริหารร้าน หว้านใหญ่ เพ็ท มาร์ท (V.6.5 Admin Delete)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
@@ -45,7 +45,7 @@
                     <i class="fa-solid fa-paw fa-2x" style="color:#2d6a4f"></i>
                 </div>
                 <h5 class="fw-bold mt-2">หว้านใหญ่<br>เพ็ท มาร์ท</h5>
-                <span class="badge bg-info text-dark rounded-pill">V.6.4 GitHub Ready</span>
+                <span class="badge bg-danger text-white rounded-pill">V.6.5 Admin Delete</span>
             </div>
             <nav class="nav flex-column pe-2">
                 <a class="nav-link active" onclick="showSection('dashboard')"><i class="fa-solid fa-chart-pie me-2"></i> ภาพรวมร้าน</a>
@@ -246,50 +246,25 @@
     let purchases = JSON.parse(localStorage.getItem('purchases_v6')) || [];
     let cart = [];
 
-    // --- AUTO IMAGE GENERATOR (Core Function) ---
+    // --- AUTO IMAGE ---
     function generateAvatar(text) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = 200; canvas.height = 200;
-        
-        // Pastel Colors
-        const colors = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
+        const colors = ['#f4a261', '#2a9d8f', '#e76f51', '#264653', '#e9c46a', '#8ecae6'];
         let hash = 0; for (let i=0; i<text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
         ctx.fillStyle = colors[Math.abs(hash) % colors.length];
         ctx.fillRect(0, 0, 200, 200);
-        
-        // Initials Logic
-        let initials = "?";
-        if(text) {
-            const words = text.trim().split(' ');
-            if(words.length > 1) {
-                initials = (words[0][0] + words[1][0]).toUpperCase();
-            } else {
-                initials = text.substring(0, 2).toUpperCase();
-            }
-        }
-
-        ctx.fillStyle = '#555'; 
-        ctx.font = 'bold 80px Sarabun, Arial'; 
-        ctx.textAlign = 'center'; 
-        ctx.textBaseline = 'middle';
+        const initials = text ? text.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : "?";
+        ctx.fillStyle = 'white'; ctx.font = 'bold 100px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(initials, 100, 100);
-        
         return canvas.toDataURL();
     }
 
-    // --- DATA INTEGRITY CHECK (Run on Load) ---
-    // Ensure all products have images. If not, generate them immediately and save.
+    // --- Data Check ---
     let dataChanged = false;
-    products.forEach(p => {
-        if(!p.img || p.img === "" || p.img.includes('placehold.co')) {
-            p.img = generateAvatar(p.name);
-            dataChanged = true;
-        }
-    });
-    if(dataChanged) {
-        localStorage.setItem('products_v6', JSON.stringify(products));
-    }
+    products.forEach(p => { if(!p.img || p.img === "" || p.img.includes('placehold.co')) { p.img = generateAvatar(p.name); dataChanged = true; } });
+    if(dataChanged) localStorage.setItem('products_v6', JSON.stringify(products));
 
     // --- Navigation ---
     function showSection(id) {
@@ -322,9 +297,7 @@
         const search = document.getElementById('searchPos').value.toLowerCase();
         grid.innerHTML = '';
         const filtered = products.filter(p => p.name.toLowerCase().includes(search));
-        
         if(filtered.length === 0) { grid.innerHTML = '<div class="col-12 text-center text-muted py-5">ไม่พบสินค้า</div>'; return; }
-
         filtered.forEach(p => {
             let opacity = p.stock <= 0 ? 'opacity-50 grayscale' : '';
             let stockBadge = p.stock <= 0 ? '<span class="position-absolute top-50 start-50 translate-middle badge bg-danger shadow">สินค้าหมด</span>' : `<span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75 text-white" style="font-size:0.8rem">${p.stock} หน่วย</span>`;
@@ -333,7 +306,6 @@
                 let prices = p.options.map(o => o.price);
                 priceDisplay = (Math.min(...prices) === Math.max(...prices)) ? `${prices[0]} ฿` : `${Math.min(...prices)} - ${Math.max(...prices)} ฿`;
             } else { priceDisplay = 'ยังไม่ตั้งราคา'; }
-
             grid.innerHTML += `
                 <div class="col-6 col-md-4 col-lg-3" onclick="openOptionSelect(${p.id})">
                     <div class="card product-card h-100 ${opacity}">
@@ -356,26 +328,14 @@
         const p = products.find(x => x.id === id);
         if(!p || p.stock <= 0) return Swal.fire({ icon: 'error', title: 'สินค้าหมด!', timer: 1000, showConfirmButton: false });
         if (!p.options || p.options.length === 0) return Swal.fire('เตือน', 'ยังไม่ได้ตั้งราคาขาย', 'warning');
-
-        if (p.options.length === 1) {
-            addToCart(p.id, 0);
-        } else {
-            // ใช้ SweetAlert เป็นเมนูเลือก
+        if (p.options.length === 1) { addToCart(p.id, 0); } 
+        else {
             let optionsHtml = '<div class="d-grid gap-2">';
             p.options.forEach((opt, idx) => {
-                optionsHtml += `<button class="btn btn-outline-success text-start d-flex justify-content-between p-3" onclick="swal.clickConfirm(); addToCart(${p.id}, ${idx})">
-                    <span>${opt.name} <small class="text-muted">(ตัดสต๊อก ${opt.cutStock})</small></span>
-                    <span class="fw-bold">${opt.price} ฿</span>
-                </button>`;
+                optionsHtml += `<button class="btn btn-outline-success text-start d-flex justify-content-between p-3" onclick="swal.clickConfirm(); addToCart(${p.id}, ${idx})"><span>${opt.name} <small class="text-muted">(ตัดสต๊อก ${opt.cutStock})</small></span><span class="fw-bold">${opt.price} ฿</span></button>`;
             });
             optionsHtml += '</div>';
-
-            Swal.fire({
-                title: p.name,
-                html: optionsHtml,
-                showConfirmButton: false,
-                showCloseButton: true
-            });
+            Swal.fire({ title: p.name, html: optionsHtml, showConfirmButton: false, showCloseButton: true });
         }
     }
 
@@ -384,16 +344,12 @@
         const opt = p.options[optionIdx];
         let inCartQty = 0;
         cart.forEach(c => { if(c.id === productId) inCartQty += (c.cutStock * c.qty); });
-
         if (p.stock < (inCartQty + opt.cutStock)) return Swal.fire({ icon: 'warning', title: 'สินค้าไม่พอ', text: `เหลือ ${p.stock} ชิ้น` });
-
         const exist = cart.find(c => c.id === productId && c.optionName === opt.name);
         if(exist) exist.qty++;
         else cart.push({ id: p.id, name: p.name, optionName: opt.name, price: opt.price, cutStock: opt.cutStock, qty: 1 });
-        
         renderCart();
-        const toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1000 });
-        toast.fire({ icon: 'success', title: 'เพิ่มแล้ว' });
+        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1000 }).fire({ icon: 'success', title: 'เพิ่มแล้ว' });
     }
 
     function renderCart() {
@@ -404,25 +360,11 @@
             document.getElementById('cartCount').innerText = '0';
             return;
         }
-        
         let html = '<ul class="list-group list-group-flush small">';
-        let total = 0;
-        let count = 0;
+        let total = 0; let count = 0;
         cart.forEach((c, i) => {
-            total += c.price * c.qty;
-            count += c.qty;
-            html += `
-                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-1">
-                    <div class="text-truncate" style="max-width: 140px;">
-                        <span class="fw-bold">${c.name}</span><br>
-                        <span class="badge bg-secondary text-white rounded-pill" style="font-size:0.7em">${c.optionName}</span>
-                        <span class="text-muted" style="font-size:0.8em">${c.price} x ${c.qty}</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-bold">${(c.price*c.qty).toLocaleString()}</span>
-                        <i class="fa-solid fa-trash text-danger" style="cursor:pointer" onclick="cart.splice(${i},1);renderCart()"></i>
-                    </div>
-                </li>`;
+            total += c.price * c.qty; count += c.qty;
+            html += `<li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-1"><div class="text-truncate" style="max-width: 140px;"><span class="fw-bold">${c.name}</span><br><span class="badge bg-secondary text-white rounded-pill" style="font-size:0.7em">${c.optionName}</span> <span class="text-muted" style="font-size:0.8em">${c.price} x ${c.qty}</span></div><div class="d-flex align-items-center gap-2"><span class="fw-bold">${(c.price*c.qty).toLocaleString()}</span><i class="fa-solid fa-trash text-danger" style="cursor:pointer" onclick="cart.splice(${i},1);renderCart()"></i></div></li>`;
         });
         div.innerHTML = html + '</ul>';
         document.getElementById('cartTotal').innerText = total.toLocaleString() + ' ฿';
@@ -430,11 +372,9 @@
     }
     function clearCart() { cart = []; renderCart(); }
 
-    // --- CHECKOUT PROCESS ---
+    // --- CHECKOUT ---
     function checkout() {
         if(cart.length === 0) return;
-        
-        // 1. Confirm Dialog
         Swal.fire({
             title: 'ยืนยันยอดรับเงิน',
             html: `<h1 class="text-success fw-bold">${document.getElementById('cartTotal').innerText}</h1>`,
@@ -443,11 +383,7 @@
             confirmButtonText: '✅ รับเงิน',
             cancelButtonText: 'ยกเลิก',
             confirmButtonColor: '#2d6a4f'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                processCheckout();
-            }
-        });
+        }).then((result) => { if (result.isConfirmed) processCheckout(); });
     }
 
     function processCheckout() {
@@ -461,53 +397,20 @@
                 totalSale += (c.price * c.qty);
             }
         });
-        
         let billId = Date.now().toString().slice(-6);
         let txn = { id: billId, date: new Date().toLocaleString('th-TH'), items: [...cart], total: totalSale, profit: totalSale - totalCost };
         transactions.push(txn);
         saveData();
-        
         cart = []; renderCart(); renderPOS();
-        
-        // 2. Show Bill
         showDigitalBill(txn);
     }
 
     function showDigitalBill(txn) {
         let itemsHtml = '';
-        txn.items.forEach(i => {
-            itemsHtml += `
-                <div class="bill-row">
-                    <span>${i.name} (${i.optionName}) x${i.qty}</span>
-                    <span>${(i.price * i.qty).toLocaleString()}</span>
-                </div>
-            `;
-        });
-
+        txn.items.forEach(i => { itemsHtml += `<div class="bill-row"><span>${i.name} (${i.optionName}) x${i.qty}</span><span>${(i.price * i.qty).toLocaleString()}</span></div>`; });
         Swal.fire({
-            html: `
-                <div class="bill-wrapper">
-                    <div class="bill-header">
-                        <strong>หว้านใหญ่ เพ็ท มาร์ท</strong><br>
-                        บริการส่งฟรีในพื้นที่!<br>
-                        วันที่: ${txn.date}<br>
-                        เลขบิล: ${txn.id}
-                    </div>
-                    ${itemsHtml}
-                    <div class="bill-total">
-                        <span>ยอดรวมสุทธิ</span>
-                        <span>${txn.total.toLocaleString()} ฿</span>
-                    </div>
-                </div>
-                <div class="mt-3 text-center">
-                    <small class="text-muted">แคปหน้าจอเพื่อส่งให้ลูกค้า</small>
-                </div>
-            `,
-            showConfirmButton: true,
-            confirmButtonText: 'ปิด',
-            showDenyButton: true,
-            denyButtonText: 'คัดลอก',
-            denyButtonColor: '#0d6efd'
+            html: `<div class="bill-wrapper"><div class="bill-header"><strong>หว้านใหญ่ เพ็ท มาร์ท</strong><br>บริการส่งฟรีในพื้นที่!<br>วันที่: ${txn.date}<br>เลขบิล: ${txn.id}</div>${itemsHtml}<div class="bill-total"><span>ยอดรวมสุทธิ</span><span>${txn.total.toLocaleString()} ฿</span></div></div><div class="mt-3 text-center"><small class="text-muted">แคปหน้าจอเพื่อส่งให้ลูกค้า</small></div>`,
+            showConfirmButton: true, confirmButtonText: 'ปิด', showDenyButton: true, denyButtonText: 'คัดลอก', denyButtonColor: '#0d6efd'
         }).then((res) => {
             if(res.isDenied) {
                 let textBill = `[บิลเงินสด] หว้านใหญ่ เพ็ท มาร์ท\nวันที่: ${txn.date}\nเลขบิล: ${txn.id}\n------------------\n`;
@@ -519,7 +422,7 @@
         });
     }
 
-    // --- History ---
+    // --- History & Admin Delete ---
     function renderHistory() {
         const tbody = document.getElementById('historyTable');
         tbody.innerHTML = '';
@@ -529,9 +432,46 @@
                     <td><small>${t.date}</small></td>
                     <td>${t.id}</td>
                     <td>${t.total.toLocaleString()}</td>
-                    <td><button class="btn btn-sm btn-outline-primary" onclick='showDigitalBill(${JSON.stringify(t)})'>ดูบิล</button></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick='showDigitalBill(${JSON.stringify(t)})'>ดูบิล</button>
+                        <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteBill('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
                 </tr>`;
         });
+    }
+
+    async function deleteBill(id) {
+        const { value: password } = await Swal.fire({
+            title: 'Admin Only',
+            text: "กรุณากรอกรหัสผ่านเพื่อลบบิล (สต๊อกจะถูกคืนอัตโนมัติ)",
+            input: 'password',
+            inputPlaceholder: 'Enter Password',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยันลบ',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#d33'
+        });
+
+        if (password === 'Gg6106') {
+            const txnIndex = transactions.findIndex(t => t.id === id);
+            if (txnIndex > -1) {
+                const txn = transactions[txnIndex];
+                // Return Stock Logic
+                txn.items.forEach(item => {
+                    const product = products.find(p => p.id === item.id);
+                    if (product) {
+                        product.stock += (item.qty * item.cutStock);
+                    }
+                });
+                
+                transactions.splice(txnIndex, 1);
+                saveData();
+                renderHistory();
+                Swal.fire('ลบสำเร็จ!', 'บิลถูกลบและคืนสต๊อกเรียบร้อยแล้ว', 'success');
+            }
+        } else if (password) {
+            Swal.fire('รหัสผ่านผิด', 'คุณไม่มีสิทธิ์ลบบิลนี้', 'error');
+        }
     }
 
     // --- Product Logic ---
@@ -566,9 +506,7 @@
                     <button class="btn btn-sm btn-outline-primary w-100 border-dashed" onclick="addOptionRow()">+ เพิ่มวิธีการขาย</button>
                 </div>
             `,
-            showCancelButton: true,
-            confirmButtonText: 'บันทึก',
-            confirmButtonColor: '#2d6a4f',
+            showCancelButton: true, confirmButtonText: 'บันทึก', confirmButtonColor: '#2d6a4f',
             preConfirm: () => {
                 const newOptions = [];
                 document.querySelectorAll('.option-row').forEach(row => {
