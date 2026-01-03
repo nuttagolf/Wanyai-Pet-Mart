@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบริหารร้าน หว้านใหญ่ เพ็ท มาร์ท (V.6.5 Admin Delete)</title>
+    <title>ระบบบริหารร้าน หว้านใหญ่ เพ็ท มาร์ท (V.6.6 Stock Correction)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
@@ -45,7 +45,7 @@
                     <i class="fa-solid fa-paw fa-2x" style="color:#2d6a4f"></i>
                 </div>
                 <h5 class="fw-bold mt-2">หว้านใหญ่<br>เพ็ท มาร์ท</h5>
-                <span class="badge bg-danger text-white rounded-pill">V.6.5 Admin Delete</span>
+                <span class="badge bg-danger text-white rounded-pill">V.6.6 Stock Fix</span>
             </div>
             <nav class="nav flex-column pe-2">
                 <a class="nav-link active" onclick="showSection('dashboard')"><i class="fa-solid fa-chart-pie me-2"></i> ภาพรวมร้าน</a>
@@ -136,7 +136,7 @@
                 <h3 class="mb-4">🚚 รับสินค้าเข้าสต๊อก</h3>
                 <div class="row">
                     <div class="col-md-5">
-                        <div class="card card-custom p-4">
+                        <div class="card card-custom p-4 mb-3">
                             <div class="mb-3">
                                 <label class="form-label text-muted small">เลือกสินค้า</label>
                                 <select id="purchase-product" class="form-select" onchange="updatePurchaseUnitCost()"><option value="">-- ค้นหาสินค้า --</option></select>
@@ -156,10 +156,10 @@
                     </div>
                     <div class="col-md-7">
                         <div class="card card-custom p-4">
-                            <h6 class="text-muted mb-3">ประวัติการรับของล่าสุด</h6>
+                            <h6 class="text-muted mb-3">ประวัติการรับของล่าสุด (กดลบเพื่อแก้ไข)</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm text-center align-middle">
-                                    <thead class="table-light"><tr><th>วันที่</th><th>สินค้า</th><th>จำนวน</th><th>ทุน/หน่วย</th></tr></thead>
+                                    <thead class="table-light"><tr><th>วันที่</th><th>สินค้า</th><th>จำนวน</th><th>ทุน/หน่วย</th><th>จัดการ</th></tr></thead>
                                     <tbody id="purchaseHistoryTable"></tbody>
                                 </table>
                             </div>
@@ -443,7 +443,7 @@
     async function deleteBill(id) {
         const { value: password } = await Swal.fire({
             title: 'Admin Only',
-            text: "กรุณากรอกรหัสผ่านเพื่อลบบิล (สต๊อกจะถูกคืนอัตโนมัติ)",
+            text: "กรอกรหัสเพื่อลบบิล (สต๊อกจะคืนอัตโนมัติ)",
             input: 'password',
             inputPlaceholder: 'Enter Password',
             showCancelButton: true,
@@ -456,22 +456,101 @@
             const txnIndex = transactions.findIndex(t => t.id === id);
             if (txnIndex > -1) {
                 const txn = transactions[txnIndex];
-                // Return Stock Logic
                 txn.items.forEach(item => {
                     const product = products.find(p => p.id === item.id);
-                    if (product) {
-                        product.stock += (item.qty * item.cutStock);
-                    }
+                    if (product) product.stock += (item.qty * item.cutStock);
                 });
-                
                 transactions.splice(txnIndex, 1);
                 saveData();
                 renderHistory();
-                Swal.fire('ลบสำเร็จ!', 'บิลถูกลบและคืนสต๊อกเรียบร้อยแล้ว', 'success');
+                Swal.fire('ลบสำเร็จ!', 'คืนสต๊อกเรียบร้อยแล้ว', 'success');
             }
         } else if (password) {
-            Swal.fire('รหัสผ่านผิด', 'คุณไม่มีสิทธิ์ลบบิลนี้', 'error');
+            Swal.fire('รหัสผ่านผิด', '', 'error');
         }
+    }
+
+    // --- Purchase Management (NEW: Correction) ---
+    function renderPurchaseSection() {
+        const sel = document.getElementById('purchase-product');
+        sel.innerHTML = '<option value="">-- เลือกสินค้า --</option>';
+        products.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
+        
+        const tbody = document.getElementById('purchaseHistoryTable');
+        tbody.innerHTML = '';
+        // Add index to allow deletion
+        purchases.slice().reverse().slice(0,10).forEach((p, displayIdx) => {
+            // Calculate real index in the main array
+            let realIdx = purchases.length - 1 - displayIdx;
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${p.date.split(' ')[0]}</td>
+                    <td>${p.productName}</td>
+                    <td class="text-success">+${p.qty}</td>
+                    <td>${p.unitCost}</td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="deletePurchase(${realIdx})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+        });
+    }
+
+    async function deletePurchase(index) {
+        const { value: password } = await Swal.fire({
+            title: 'Admin Only',
+            text: "ต้องการลบรายการรับของนี้? (สต๊อกจะถูกหักออก)",
+            input: 'password',
+            inputPlaceholder: 'Enter Password',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยันลบ',
+            confirmButtonColor: '#d33'
+        });
+
+        if (password === 'Gg6106') {
+            const p = purchases[index];
+            // Find product to deduct stock
+            const product = products.find(prod => prod.name === p.productName || prod.id === p.productId); // Try match by ID or Name
+            
+            if (product) {
+                if (product.stock >= p.qty) {
+                    product.stock -= p.qty;
+                    purchases.splice(index, 1);
+                    saveData();
+                    renderPurchaseSection();
+                    Swal.fire('เรียบร้อย', `ลบรายการรับของและหักสต๊อกออก ${p.qty} ชิ้นแล้ว`, 'success');
+                } else {
+                    Swal.fire('ทำไม่ได้', 'สต๊อกคงเหลือปัจจุบันน้อยกว่ายอดที่รับเข้า (อาจจะขายไปแล้ว)', 'error');
+                }
+            } else {
+                // Product deleted? Just delete log
+                purchases.splice(index, 1);
+                saveData();
+                renderPurchaseSection();
+                Swal.fire('ลบประวัติ', 'ไม่พบสินค้าในฐานข้อมูลแล้ว แต่ลบประวัติให้เรียบร้อย', 'success');
+            }
+        } else if (password) {
+            Swal.fire('รหัสผ่านผิด', '', 'error');
+        }
+    }
+
+    function updatePurchaseUnitCost() {
+        let p = products.find(x => x.id == document.getElementById('purchase-product').value);
+        if(p) document.getElementById('purchase-cost').value = p.cost;
+    }
+    function confirmPurchase() {
+        let id = parseInt(document.getElementById('purchase-product').value);
+        let qty = parseInt(document.getElementById('purchase-qty').value);
+        let cost = parseFloat(document.getElementById('purchase-cost').value);
+        if(!id || !qty || isNaN(cost)) return Swal.fire({icon:'error', title:'ข้อมูลไม่ครบ'});
+        let p = products.find(x => x.id === id);
+        let oldVal = p.stock * p.cost;
+        let newVal = qty * cost;
+        p.stock += qty;
+        p.cost = parseFloat(((oldVal + newVal) / p.stock).toFixed(2));
+        // Add productId for safer referencing
+        purchases.push({ date: new Date().toLocaleString('th-TH'), productName: p.name, productId: p.id, qty, unitCost: cost });
+        saveData(); renderPurchaseSection();
+        Swal.fire({icon:'success', title: 'เพิ่มสต็อกเรียบร้อย', timer: 1500, showConfirmButton:false});
+        document.getElementById('purchase-qty').value = '';
     }
 
     // --- Product Logic ---
@@ -560,37 +639,7 @@
         });
     }
 
-    // --- Purchase Logic ---
-    function renderPurchaseSection() {
-        const sel = document.getElementById('purchase-product');
-        sel.innerHTML = '<option value="">-- เลือกสินค้า --</option>';
-        products.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
-        const tbody = document.getElementById('purchaseHistoryTable');
-        tbody.innerHTML = '';
-        purchases.slice().reverse().slice(0,8).forEach(p => {
-            tbody.innerHTML += `<tr><td>${p.date.split(' ')[0]}</td><td>${p.productName}</td><td class="text-success">+${p.qty}</td><td>${p.unitCost}</td></tr>`;
-        });
-    }
-    function updatePurchaseUnitCost() {
-        let p = products.find(x => x.id == document.getElementById('purchase-product').value);
-        if(p) document.getElementById('purchase-cost').value = p.cost;
-    }
-    function confirmPurchase() {
-        let id = parseInt(document.getElementById('purchase-product').value);
-        let qty = parseInt(document.getElementById('purchase-qty').value);
-        let cost = parseFloat(document.getElementById('purchase-cost').value);
-        if(!id || !qty || isNaN(cost)) return Swal.fire({icon:'error', title:'ข้อมูลไม่ครบ'});
-        let p = products.find(x => x.id === id);
-        let oldVal = p.stock * p.cost;
-        let newVal = qty * cost;
-        p.stock += qty;
-        p.cost = parseFloat(((oldVal + newVal) / p.stock).toFixed(2));
-        purchases.push({ date: new Date().toLocaleString('th-TH'), productName: p.name, qty, unitCost: cost });
-        saveData(); renderPurchaseSection();
-        Swal.fire({icon:'success', title: 'เพิ่มสต็อกเรียบร้อย', timer: 1500, showConfirmButton:false});
-        document.getElementById('purchase-qty').value = '';
-    }
-
+    // --- Settings & Utils ---
     function exportData() {
         const dataStr = JSON.stringify({ products, transactions, purchases });
         const link = document.createElement('a');
