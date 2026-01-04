@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wan Yai Pet Mart POS (Final)</title>
+    <title>Wan Yai Pet Mart POS (V.9.0 Accounting)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -26,7 +26,6 @@
             background-color: var(--bg-color); 
             font-family: 'Sarabun', sans-serif; 
             overflow-x: hidden;
-            /* Pattern รอยเท้าแมว */
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 30c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm0-8c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm-6 5c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm12 0c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm-6 12c-3.3 0-6-2.7-6-6 0-1 .3-1.9.8-2.7.5-.7 1.2-1.2 2-1.5 1-.4 2.1-.6 3.2-.6 1.1 0 2.2.2 3.2.6.8.3 1.5.8 2 1.5.5.8.8 1.7.8 2.7 0 3.3-2.7 6-6 6z' fill='%23569e83' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E");
         }
 
@@ -68,12 +67,6 @@
         .btn-theme { background-color: var(--primary-color); color: white; border: none; border-radius: 10px; }
         .btn-theme:hover { background-color: var(--primary-dark); color: white; }
         
-        /* Utils */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary-color); }
-        
         /* Bill Style */
         .bill-slip { font-family: 'Courier New', monospace; text-align: left; background: #fff; padding: 15px; border: 1px solid #ddd; position: relative; font-size: 14px; color: #000; }
         .bill-slip::before, .bill-slip::after { content: ''; position: absolute; left: 0; width: 100%; height: 5px; background: radial-gradient(circle, #fff 5px, transparent 6px); background-size: 15px 15px; }
@@ -106,13 +99,15 @@
     <nav class="nav flex-column mt-3 flex-grow-1">
         <a class="nav-link active" onclick="showSection('dashboard')"><i class="fa-solid fa-chart-pie"></i> แดชบอร์ด</a>
         <a class="nav-link" onclick="showSection('pos')"><i class="fa-solid fa-cash-register"></i> ขายหน้าร้าน</a>
+        <a class="nav-link" onclick="showSection('accounting')"><i class="fa-solid fa-calculator"></i> บัญชี/กำไร</a>
+        
         <a class="nav-link" onclick="showSection('products')"><i class="fa-solid fa-boxes-stacked"></i> สินค้า/สต๊อก</a>
         <a class="nav-link" onclick="showSection('history')"><i class="fa-solid fa-clock-rotate-left"></i> ประวัติขาย</a>
         <a class="nav-link" onclick="showSection('purchase')"><i class="fa-solid fa-truck-ramp-box"></i> รับของเข้า</a>
     </nav>
 
     <div class="p-3 border-top text-center">
-        <small class="text-muted d-block mb-2">Wan Yai Pet Mart V.8.0 Final</small>
+        <small class="text-muted d-block mb-2">Wan Yai V.9.0 Accounting</small>
         <a class="btn btn-sm btn-outline-secondary w-100" onclick="showSection('settings')"><i class="fa-solid fa-gear"></i> ตั้งค่าระบบ</a>
     </div>
 </div>
@@ -253,11 +248,99 @@
                             <span class="text-muted">รวมสุทธิ</span>
                             <h2 class="text-success fw-bold mb-0" id="cartTotal">0 ฿</h2>
                         </div>
-                        <button class="btn w-100 py-3 fw-bold fs-5 shadow-sm mb-2 text-white" style="background-color: var(--accent-color); border:none;" onclick="checkout()">
-                            <i class="fa-regular fa-credit-card"></i> รับเงิน (F2)
-                        </button>
+                        
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <button class="btn btn-success w-100 py-3 fw-bold shadow-sm" onclick="checkout('CASH')">
+                                    <i class="fa-solid fa-money-bill-wave"></i> เงินสด
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-info text-white w-100 py-3 fw-bold shadow-sm" onclick="checkout('TRANSFER')">
+                                    <i class="fa-solid fa-qrcode"></i> โอน/สแกน
+                                </button>
+                            </div>
+                        </div>
                         <button class="btn btn-outline-secondary w-100 btn-sm" onclick="clearCart()">ล้างรายการ</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="accounting" class="section" style="display:none;">
+        <h4 class="fw-bold mb-4 text-dark">บันทึกรายจ่าย & สรุปบัญชี</h4>
+        
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card card-custom p-4">
+                    <h6 class="fw-bold text-danger mb-3"><i class="fa-solid fa-circle-minus"></i> บันทึกค่าใช้จ่าย</h6>
+                    <form onsubmit="addExpense(event)">
+                        <div class="mb-2">
+                            <label class="small text-muted">หมวดหมู่</label>
+                            <select id="exp-cat" class="form-select" required>
+                                <option value="ค่าน้ำ/ค่าไฟ">ค่าน้ำ/ค่าไฟ</option>
+                                <option value="ค่าถุง/แพ็คเกจ">ค่าถุง/แพ็คเกจ</option>
+                                <option value="ค่าจ้างพนักงาน">ค่าจ้างพนักงาน</option>
+                                <option value="ค่าซ่อมแซม">ค่าซ่อมแซม</option>
+                                <option value="เบ็ดเตล็ด">เบ็ดเตล็ด/อื่นๆ</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="small text-muted">จำนวนเงิน (บาท)</label>
+                            <input type="number" id="exp-amount" class="form-control" required placeholder="0.00">
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-muted">หมายเหตุ</label>
+                            <input type="text" id="exp-note" class="form-control" placeholder="เช่น ซื้อหลอดไฟใหม่">
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">บันทึกจ่ายออก</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card card-custom p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold">รายการรายจ่ายล่าสุด</h6>
+                        <small class="text-muted">แสดง 10 รายการล่าสุด</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover small">
+                            <thead class="table-light"><tr><th>วันที่</th><th>หมวดหมู่</th><th>หมายเหตุ</th><th>จำนวนเงิน</th><th>ลบ</th></tr></thead>
+                            <tbody id="expenseTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-custom p-4 border-primary border-top border-4">
+            <h5 class="fw-bold mb-4 text-center">งบกำไรขาดทุน (Profit & Loss Statement) - วันนี้</h5>
+            <div class="row">
+                <div class="col-md-6 offset-md-3">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>รายได้จากการขาย (Sales Revenue)</span>
+                            <span class="fw-bold" id="pl-sales">0.00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between text-muted">
+                            <span>หัก: ต้นทุนสินค้าขาย (COGS)</span>
+                            <span id="pl-cogs">0.00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between bg-light fw-bold">
+                            <span>= กำไรขั้นต้น (Gross Profit)</span>
+                            <span class="text-success" id="pl-gross">0.00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between text-danger">
+                            <span>หัก: ค่าใช้จ่ายดำเนินงาน (Expenses)</span>
+                            <span id="pl-expense">0.00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between bg-success text-white fw-bold fs-5 rounded mt-2">
+                            <span>= กำไรสุทธิ (Net Profit)</span>
+                            <span id="pl-net">0.00</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -288,7 +371,7 @@
         <div class="card card-custom p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light"><tr><th class="ps-4">วันที่/เวลา</th><th>เลขบิล</th><th>รายการ</th><th>ยอดรวม</th><th class="text-end pe-4">ตัวเลือก</th></tr></thead>
+                    <thead class="bg-light"><tr><th class="ps-4">วันที่/เวลา</th><th>บิล</th><th>ชำระโดย</th><th>ยอดรวม</th><th class="text-end pe-4">ตัวเลือก</th></tr></thead>
                     <tbody id="historyTable"></tbody>
                 </table>
             </div>
@@ -366,15 +449,16 @@
 </div>
 
 <script>
-    // --- Global Data & State ---
-    let products = JSON.parse(localStorage.getItem('products_v7')) || [];
-    let transactions = JSON.parse(localStorage.getItem('transactions_v7')) || [];
-    let purchases = JSON.parse(localStorage.getItem('purchases_v7')) || [];
+    // --- Global Data & State (Updated Keys to v9) ---
+    let products = JSON.parse(localStorage.getItem('products_v9')) || [];
+    let transactions = JSON.parse(localStorage.getItem('transactions_v9')) || [];
+    let purchases = JSON.parse(localStorage.getItem('purchases_v9')) || [];
+    let expenses = JSON.parse(localStorage.getItem('expenses_v9')) || []; // NEW
     let cart = [];
     let topProductChartInstance = null;
     let hourlyChartInstance = null;
 
-    // --- Auto Avatar Generator ---
+    // --- Utils ---
     function generateAvatar(text) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -388,31 +472,22 @@
         return canvas.toDataURL();
     }
 
-    // --- IMAGE RESIZE & BASE64 (FIX for Disappearing Images) ---
     function handleImageUpload(input) {
         if (input.files && input.files[0]) {
             const file = input.files[0];
             const reader = new FileReader();
-            
             reader.onload = function(e) {
                 const img = new Image();
                 img.src = e.target.result;
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    // Resize to 300px max
                     const maxWidth = 300;
                     const scaleFactor = maxWidth / img.width;
-                    const newWidth = maxWidth;
-                    const newHeight = img.height * scaleFactor;
-
-                    canvas.width = newWidth;
-                    canvas.height = newHeight;
-                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
-                    
-                    // Convert to persistent Base64 string
-                    const dataURI = canvas.toDataURL('image/jpeg', 0.7);
-                    document.getElementById('prev-img').src = dataURI;
+                    canvas.width = maxWidth;
+                    canvas.height = img.height * scaleFactor;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    document.getElementById('prev-img').src = canvas.toDataURL('image/jpeg', 0.7);
                 };
             };
             reader.readAsDataURL(file);
@@ -428,36 +503,33 @@
         document.querySelectorAll('.section').forEach(el => el.style.display = 'none');
         document.getElementById(id).style.display = 'block';
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-        const links = document.querySelectorAll('.nav-link');
-        if(id === 'dashboard') links[0].classList.add('active');
-        if(id === 'pos') { links[1].classList.add('active'); renderPOS(); }
-        if(id === 'products') { links[2].classList.add('active'); renderStock(); }
-        if(id === 'history') { links[3].classList.add('active'); renderHistory(); }
-        if(id === 'purchase') { links[4].classList.add('active'); renderPurchaseSection(); }
-        if(id === 'settings') links[5].classList.add('active');
+        
+        // Manual Map for Menu Highlighting
+        const menuIndices = {'dashboard':0, 'pos':1, 'accounting':2, 'products':3, 'history':4, 'purchase':5, 'settings':6};
+        if(menuIndices[id] !== undefined) document.querySelectorAll('.nav-link')[menuIndices[id]].classList.add('active');
         
         if(window.innerWidth < 768) toggleSidebar();
-        if(id === 'dashboard') renderDashboard();
-    }
-    function saveData() {
-        localStorage.setItem('products_v7', JSON.stringify(products));
-        localStorage.setItem('transactions_v7', JSON.stringify(transactions));
-        localStorage.setItem('purchases_v7', JSON.stringify(purchases));
-    }
-
-    // --- 1. DASHBOARD LOGIC ---
-    function renderDashboard() {
-        const today = new Date();
-        const dateStr = today.toLocaleDateString('th-TH');
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-        const todayEnd = todayStart + 86400000;
         
-        document.getElementById('dashDate').innerText = dateStr;
+        if(id === 'dashboard') renderDashboard();
+        if(id === 'pos') renderPOS();
+        if(id === 'products') renderStock();
+        if(id === 'history') renderHistory();
+        if(id === 'purchase') renderPurchaseSection();
+        if(id === 'accounting') renderAccounting(); // NEW
+    }
+    
+    function saveData() {
+        localStorage.setItem('products_v9', JSON.stringify(products));
+        localStorage.setItem('transactions_v9', JSON.stringify(transactions));
+        localStorage.setItem('purchases_v9', JSON.stringify(purchases));
+        localStorage.setItem('expenses_v9', JSON.stringify(expenses));
+    }
 
-        const todayTxs = transactions.filter(t => {
-            if(t.timestamp) return t.timestamp >= todayStart && t.timestamp < todayEnd;
-            return t.date.startsWith(dateStr.split('/')[0] + '/'); 
-        });
+    // --- 1. DASHBOARD LOGIC (Original Preserved) ---
+    function renderDashboard() {
+        const todayStr = new Date().toLocaleDateString('th-TH');
+        document.getElementById('dashDate').innerText = todayStr;
+        const todayTxs = transactions.filter(t => t.date.startsWith(todayStr.split('/')[0] + '/'));
 
         let totalSales = 0, totalProfit = 0;
         todayTxs.forEach(t => { totalSales += t.total; totalProfit += t.profit; });
@@ -478,10 +550,8 @@
         // Charts
         let hourlyData = new Array(24).fill(0);
         todayTxs.forEach(t => {
-            let hour = 0;
-            if(t.timestamp) { hour = new Date(t.timestamp).getHours(); } 
-            else { try { hour = parseInt(t.date.split(' ')[1].split(':')[0]); } catch(e){} }
-            if(hour >= 0 && hour < 24) hourlyData[hour] += t.total;
+            let hour = t.timestamp ? new Date(t.timestamp).getHours() : 0;
+            hourlyData[hour] += t.total;
         });
         
         const ctxHourly = document.getElementById('hourlySalesChart').getContext('2d');
@@ -491,17 +561,15 @@
             data: {
                 labels: Array.from({length:17}, (_,i)=> (i+6)+":00"),
                 datasets: [{
-                    label: 'ยอดขาย (บาท)',
-                    data: hourlyData.slice(6, 23),
-                    borderColor: '#569e83', backgroundColor: 'rgba(86, 158, 131, 0.1)',
-                    fill: true, tension: 0.4, pointBackgroundColor: '#f4a261'
+                    label: 'ยอดขาย (บาท)', data: hourlyData.slice(6, 23),
+                    borderColor: '#569e83', backgroundColor: 'rgba(86, 158, 131, 0.1)', fill: true, tension: 0.4
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} } }
         });
 
         let productMap = {};
-        transactions.forEach(t => { t.items.forEach(i => { if(!productMap[i.name]) productMap[i.name] = 0; productMap[i.name] += i.qty; }); });
+        transactions.forEach(t => { t.items.forEach(i => { productMap[i.name] = (productMap[i.name]||0) + i.qty; }); });
         let sortedProd = Object.keys(productMap).map(key => ({name: key, qty: productMap[key]})).sort((a,b)=>b.qty - a.qty).slice(0,5);
         
         const ctxTop = document.getElementById('topProductChart').getContext('2d');
@@ -521,61 +589,35 @@
 
         const recentBody = document.getElementById('recentTxTable');
         recentBody.innerHTML = '';
-        todayTxs.slice().reverse().slice(0, 10).forEach(t => {
+        todayTxs.slice().reverse().slice(0, 5).forEach(t => {
             let itemStr = t.items[0] ? t.items[0].name + (t.items.length>1 ? ` (+${t.items.length-1})`:'') : '-';
-            recentBody.innerHTML += `<tr><td>${t.date.split(' ')[1]}</td><td><span class="badge bg-light text-dark border">${t.id}</span></td><td class="text-start">${itemStr}</td><td class="fw-bold text-success">${t.total.toLocaleString()}</td><td><i class="fa-solid fa-circle-check text-success"></i></td></tr>`;
+            recentBody.innerHTML += `<tr><td>${t.date.split(' ')[1]}</td><td>${t.id}</td><td class="text-start">${itemStr}</td><td class="fw-bold">${t.total.toLocaleString()}</td><td><span class="badge ${t.method=='CASH'?'bg-success':'bg-info'}">${t.method||'CASH'}</span></td></tr>`;
         });
-        if(todayTxs.length === 0) recentBody.innerHTML = '<tr><td colspan="5" class="text-muted py-4">ยังไม่มีรายการขายวันนี้</td></tr>';
-
-        const list = document.getElementById('lowStockList');
-        list.innerHTML = '';
-        lowStock.forEach(p => {
-            list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center"><div class="d-flex align-items-center"><img src="${p.img}" class="rounded me-2" style="width:30px;height:30px;"><span>${p.name}</span></div><span class="badge bg-danger rounded-pill">${p.stock}</span></li>`;
-        });
-        if(lowStock.length===0) list.innerHTML = '<li class="list-group-item text-center text-success border-0"><i class="fa-solid fa-check-circle"></i> สต๊อกปกติ</li>';
     }
 
-    // --- 2. POS SYSTEM ---
+    // --- 2. POS SYSTEM (Updated) ---
     function renderPOS() {
         const grid = document.getElementById('productGrid');
         const term = document.getElementById('searchPos').value.toLowerCase();
         grid.innerHTML = '';
         const filtered = products.filter(p => p.name.toLowerCase().includes(term));
-        
         if(filtered.length === 0) { grid.innerHTML = '<div class="col-12 text-center text-muted py-5">ไม่พบสินค้า</div>'; return; }
         
         filtered.forEach(p => {
             let isOut = p.stock <= 0;
             let priceTxt = (p.options && p.options.length) ? Math.min(...p.options.map(o=>o.price)) + "฿+" : "N/A";
-            grid.innerHTML += `
-            <div class="col-6 col-md-4 col-lg-3" onclick="selectProduct(${p.id})">
-                <div class="card product-card h-100 ${isOut ? 'opacity-50 grayscale' : ''}">
-                    <div class="position-relative">
-                        <img src="${p.img}" class="product-img">
-                        <span class="position-absolute top-0 end-0 m-2 badge ${isOut?'bg-danger':'bg-success'} shadow">${p.stock}</span>
-                    </div>
-                    <div class="card-body p-2 text-center">
-                        <small class="fw-bold d-block text-truncate text-dark">${p.name}</small>
-                        <span class="text-warning fw-bold">${priceTxt}</span>
-                    </div>
-                </div>
-            </div>`;
+            grid.innerHTML += `<div class="col-6 col-md-4 col-lg-3" onclick="selectProduct(${p.id})"><div class="card product-card h-100 ${isOut ? 'opacity-50 grayscale' : ''}"><div class="position-relative"><img src="${p.img}" class="product-img"><span class="position-absolute top-0 end-0 m-2 badge ${isOut?'bg-danger':'bg-success'} shadow">${p.stock}</span></div><div class="card-body p-2 text-center"><small class="fw-bold d-block text-truncate text-dark">${p.name}</small><span class="text-warning fw-bold">${priceTxt}</span></div></div></div>`;
         });
     }
 
     function selectProduct(id) {
         const p = products.find(x => x.id === id);
         if(!p || p.stock <= 0) return Swal.fire({icon:'error', title:'สินค้าหมด', timer:1000, showConfirmButton:false});
-        
         if(p.options.length > 1) {
             let html = '<div class="d-grid gap-2">';
-            p.options.forEach((o, i) => {
-                html += `<button class="btn btn-outline-success d-flex justify-content-between py-2" onclick="addToCart(${p.id}, ${i}); Swal.close()"><span>${o.name}</span><b>${o.price}฿</b></button>`;
-            });
+            p.options.forEach((o, i) => html += `<button class="btn btn-outline-success d-flex justify-content-between py-2" onclick="addToCart(${p.id}, ${i}); Swal.close()"><span>${o.name}</span><b>${o.price}฿</b></button>`);
             Swal.fire({ title: p.name, html: html+'</div>', showConfirmButton: false, confirmButtonColor: '#569e83' });
-        } else {
-            addToCart(p.id, 0);
-        }
+        } else { addToCart(p.id, 0); }
     }
 
     function addToCart(pid, optIdx) {
@@ -596,45 +638,33 @@
         let html = '<ul class="list-group list-group-flush small">';
         cart.forEach((c, i) => {
             total += c.price * c.qty; count += c.qty;
-            html += `
-            <li class="list-group-item d-flex justify-content-between align-items-center px-1 bg-transparent">
-                <div class="text-truncate" style="max-width: 130px;">
-                    <span class="fw-bold text-dark">${c.name}</span><br>
-                    <span class="text-muted" style="font-size:0.8em">${c.optionName} (${c.price}x${c.qty})</span>
-                </div>
-                <div>
-                    <span class="fw-bold me-2 text-dark">${(c.price*c.qty).toLocaleString()}</span>
-                    <i class="fa-solid fa-trash text-danger" style="cursor:pointer" onclick="cart.splice(${i},1);renderCart()"></i>
-                </div>
-            </li>`;
+            html += `<li class="list-group-item d-flex justify-content-between align-items-center px-1 bg-transparent"><div class="text-truncate" style="max-width: 130px;"><span class="fw-bold text-dark">${c.name}</span><br><span class="text-muted" style="font-size:0.8em">${c.optionName}</span></div><div><span class="fw-bold me-2 text-dark">${(c.price*c.qty).toLocaleString()}</span><i class="fa-solid fa-trash text-danger" style="cursor:pointer" onclick="cart.splice(${i},1);renderCart()"></i></div></li>`;
         });
         div.innerHTML = cart.length ? html+'</ul>' : '<div class="text-center text-muted mt-5 opacity-50"><i class="fa-solid fa-basket-shopping fa-3x"></i><br>ว่างเปล่า</div>';
         document.getElementById('cartTotal').innerText = total.toLocaleString() + ' ฿';
         document.getElementById('cartCount').innerText = count;
     }
 
-    // --- CHECKOUT & BILL ---
-    function checkout() {
+    function clearCart() { cart=[]; renderCart(); }
+
+    // --- CHECKOUT with SPLIT PAYMENT ---
+    function checkout(method) {
         if(cart.length === 0) return;
         const total = cart.reduce((sum, c) => sum + (c.price * c.qty), 0);
         Swal.fire({
-            title: 'ยอดรับเงิน',
+            title: `ยืนยันรับเงิน ${method==='CASH' ? 'สด' : 'โอน'}`,
             html: `<h1 class="text-success fw-bold">${total.toLocaleString()}</h1>`,
-            showCancelButton: true, confirmButtonText: '✅ รับเงิน', confirmButtonColor: '#f4a261', cancelButtonText: 'ยกเลิก'
+            showCancelButton: true, confirmButtonText: 'ยืนยัน', confirmButtonColor: method==='CASH' ? '#198754' : '#0dcaf0'
         }).then((res) => {
-            if(res.isConfirmed) processTransaction(total);
+            if(res.isConfirmed) processTransaction(total, method);
         });
     }
 
-    function processTransaction(saleTotal) {
+    function processTransaction(saleTotal, method) {
         let costTotal = 0;
         cart.forEach(c => {
             let p = products.find(x => x.id === c.id);
-            if(p) {
-                let cut = c.cutStock * c.qty;
-                p.stock -= cut;
-                costTotal += (p.cost * cut);
-            }
+            if(p) { p.stock -= (c.cutStock * c.qty); costTotal += (p.cost * c.cutStock * c.qty); }
         });
         
         const tx = {
@@ -643,105 +673,81 @@
             date: new Date().toLocaleString('th-TH'),
             items: [...cart],
             total: saleTotal,
-            profit: saleTotal - costTotal
+            profit: saleTotal - costTotal,
+            method: method // Save payment method
         };
         
         transactions.push(tx);
         saveData();
         cart = []; renderCart(); renderPOS(); renderDashboard();
         
-        // Show Bill Immediately
-        openBillModal(tx.id);
-    }
-
-    function openBillModal(txId) {
-        const tx = transactions.find(t => t.id === txId);
-        if(!tx) return;
-
+        // Bill
         let itemsHtml = '';
-        tx.items.forEach(i => {
-            itemsHtml += `<div class="d-flex justify-content-between mb-1"><span>${i.name} x${i.qty}</span><span>${(i.price * i.qty).toLocaleString()}</span></div>`;
-        });
-
-        const slipHtml = `
-            <div class="bill-slip">
-                <div class="text-center mb-3 border-bottom border-dark pb-2">
-                    <h5 class="fw-bold mb-0">หว้านใหญ่ เพ็ท มาร์ท</h5>
-                    <small>ใบเสร็จรับเงิน / Receipt</small><br>
-                    <small>วันที่: ${tx.date}</small><br>
-                    <small>เลขที่: ${tx.id}</small>
-                </div>
-                <div class="mb-3 border-bottom border-dark pb-2">${itemsHtml}</div>
-                <div class="d-flex justify-content-between fw-bold fs-5"><span>ยอดรวม</span><span>${tx.total.toLocaleString()} ฿</span></div>
-            </div>
-        `;
-
+        tx.items.forEach(i => itemsHtml += `<div class="d-flex justify-content-between mb-1"><span>${i.name} x${i.qty}</span><span>${(i.price*i.qty).toLocaleString()}</span></div>`);
         Swal.fire({
-            html: slipHtml, showCloseButton: true, showDenyButton: true,
-            confirmButtonText: 'ปิด', denyButtonText: '<i class="fa-solid fa-copy"></i> คัดลอก',
-            confirmButtonColor: '#569e83', denyButtonColor: '#4a6fa5'
-        }).then((res) => {
-            if (res.isDenied) {
-                let text = `[บิลเงินสด] หว้านใหญ่ เพ็ท มาร์ท\nวันที่: ${tx.date}\nเลขที่: ${tx.id}\n----------------\n`;
-                tx.items.forEach(i => text += `${i.name} x${i.qty} = ${i.price*i.qty}\n`);
-                text += `----------------\nยอดรวม: ${tx.total.toLocaleString()} บาท`;
-                navigator.clipboard.writeText(text);
-                Swal.fire({icon:'success',title:'คัดลอกเรียบร้อย',timer:1000,showConfirmButton:false});
-            }
+            html: `<div class="bill-slip"><div class="text-center mb-3 border-bottom border-dark pb-2"><h5 class="fw-bold mb-0">หว้านใหญ่ เพ็ท มาร์ท</h5><small>ใบเสร็จรับเงิน (${method})</small><br><small>${tx.date}</small></div><div class="mb-3 border-bottom border-dark pb-2">${itemsHtml}</div><div class="d-flex justify-content-between fw-bold fs-5"><span>ยอดรวม</span><span>${tx.total.toLocaleString()} ฿</span></div></div>`,
+            showCloseButton: true, confirmButtonText: 'ปิด'
         });
     }
 
-    function clearCart() { cart=[]; renderCart(); }
+    // --- 3. ACCOUNTING & EXPENSES (NEW LOGIC) ---
+    function addExpense(e) {
+        e.preventDefault();
+        const cat = document.getElementById('exp-cat').value;
+        const amt = parseFloat(document.getElementById('exp-amount').value);
+        const note = document.getElementById('exp-note').value;
+        
+        if(!amt) return;
+        expenses.push({ id: Date.now(), date: new Date().toLocaleString('th-TH'), category: cat, amount: amt, note: note });
+        saveData();
+        document.getElementById('exp-amount').value = '';
+        document.getElementById('exp-note').value = '';
+        renderAccounting();
+        Swal.fire({icon:'success', title:'บันทึกรายจ่ายแล้ว', timer:1000, showConfirmButton:false});
+    }
 
-    // --- 3. PRODUCT MGMT ---
+    function renderAccounting() {
+        // Table
+        const tb = document.getElementById('expenseTable'); tb.innerHTML = '';
+        expenses.slice().reverse().slice(0, 10).forEach((e, idx) => {
+            tb.innerHTML += `<tr><td>${e.date.split(' ')[0]}</td><td><span class="badge bg-secondary">${e.category}</span></td><td>${e.note}</td><td class="text-danger">-${e.amount.toLocaleString()}</td><td><i class="fa-solid fa-trash text-muted" style="cursor:pointer" onclick="delExpense(${expenses.length-1-idx})"></i></td></tr>`;
+        });
+
+        // P&L Calculation (TODAY)
+        const todayStr = new Date().toLocaleDateString('th-TH');
+        const todayTxs = transactions.filter(t => t.date.startsWith(todayStr.split('/')[0] + '/'));
+        const todayExps = expenses.filter(e => e.date.startsWith(todayStr.split('/')[0] + '/'));
+
+        let sales = todayTxs.reduce((s, t) => s + t.total, 0);
+        let cost = todayTxs.reduce((s, t) => s + (t.total - t.profit), 0);
+        let exp = todayExps.reduce((s, e) => s + e.amount, 0);
+        let gross = sales - cost;
+        let net = gross - exp;
+
+        document.getElementById('pl-sales').innerText = sales.toLocaleString('th-TH', {minimumFractionDigits:2});
+        document.getElementById('pl-cogs').innerText = cost.toLocaleString('th-TH', {minimumFractionDigits:2});
+        document.getElementById('pl-gross').innerText = gross.toLocaleString('th-TH', {minimumFractionDigits:2});
+        document.getElementById('pl-expense').innerText = exp.toLocaleString('th-TH', {minimumFractionDigits:2});
+        document.getElementById('pl-net').innerText = net.toLocaleString('th-TH', {minimumFractionDigits:2});
+    }
+
+    function delExpense(idx) {
+        expenses.splice(idx, 1); saveData(); renderAccounting();
+    }
+
+    // --- 4. PRODUCT MGMT ---
     async function openProductModal(id = null) {
         const p = id ? products.find(x=>x.id===id) : { name:'', cost:0, stock:0, img:'', options:[{name:'ปกติ', price:0, cutStock:1}] };
         if(!p.img) p.img = generateAvatar(p.name||"?");
-        
-        let optHtml = p.options.map(o => `
-            <div class="input-group mb-2 opt-row">
-                <input type="text" class="form-control opt-name" placeholder="ชื่อรุ่น" value="${o.name}">
-                <input type="number" class="form-control opt-price" placeholder="ราคาขาย" value="${o.price}">
-                <input type="number" class="form-control opt-cut" placeholder="ตัดสต๊อก" value="${o.cutStock}">
-                <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button>
-            </div>`).join('');
+        let optHtml = p.options.map(o => `<div class="input-group mb-2 opt-row"><input type="text" class="form-control opt-name" value="${o.name}"><input type="number" class="form-control opt-price" value="${o.price}"><input type="number" class="form-control opt-cut" value="${o.cutStock}"><button class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button></div>`).join('');
 
         const { value: form } = await Swal.fire({
-            title: id ? 'แก้ไขสินค้า' : 'เพิ่มสินค้าใหม่',
-            width: 600,
-            html: `
-                <div class="text-start">
-                    <div class="text-center mb-3">
-                        <img id="prev-img" src="${p.img}" class="rounded shadow-sm border" style="width:100px;height:100px;object-fit:cover;">
-                        <div class="mt-2"><label class="btn btn-sm btn-light border">เปลี่ยนรูป <input type="file" hidden accept="image/*" onchange="handleImageUpload(this)"></label></div>
-                    </div>
-                    <label>ชื่อสินค้า</label><input id="swal-name" class="form-control mb-2" value="${p.name}">
-                    <div class="row mb-2">
-                        <div class="col"><label>ทุนเฉลี่ย</label><input type="number" id="swal-cost" class="form-control" value="${p.cost}"></div>
-                        <div class="col"><label>สต๊อก</label><input type="number" id="swal-stock" class="form-control" value="${p.stock}"></div>
-                    </div>
-                    <label>ราคาขาย</label>
-                    <div id="opt-container">${optHtml}</div>
-                    <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background-color: var(--secondary-color);" onclick="addOptRow()">+ เพิ่มราคาขาย</button>
-                </div>
-            `,
+            title: id ? 'แก้ไขสินค้า' : 'เพิ่มสินค้าใหม่', width: 600,
+            html: `<div class="text-start"><div class="text-center mb-3"><img id="prev-img" src="${p.img}" class="rounded shadow-sm border" style="width:100px;height:100px;object-fit:cover;"><div class="mt-2"><label class="btn btn-sm btn-light border">เปลี่ยนรูป <input type="file" hidden accept="image/*" onchange="handleImageUpload(this)"></label></div></div><label>ชื่อสินค้า</label><input id="swal-name" class="form-control mb-2" value="${p.name}"><div class="row mb-2"><div class="col"><label>ทุนเฉลี่ย</label><input type="number" id="swal-cost" class="form-control" value="${p.cost}"></div><div class="col"><label>สต๊อก</label><input type="number" id="swal-stock" class="form-control" value="${p.stock}"></div></div><label>ราคาขาย</label><div id="opt-container">${optHtml}</div><button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background-color: var(--secondary-color);" onclick="addOptRow()">+ เพิ่มราคาขาย</button></div>`,
             confirmButtonText: 'บันทึก', showCancelButton: true, confirmButtonColor: '#569e83',
             preConfirm: () => {
-                const opts = [];
-                document.querySelectorAll('.opt-row').forEach(row => {
-                    opts.push({
-                        name: row.querySelector('.opt-name').value,
-                        price: Number(row.querySelector('.opt-price').value),
-                        cutStock: Number(row.querySelector('.opt-cut').value)
-                    });
-                });
-                return {
-                    name: document.getElementById('swal-name').value,
-                    cost: Number(document.getElementById('swal-cost').value),
-                    stock: Number(document.getElementById('swal-stock').value),
-                    img: document.getElementById('prev-img').src,
-                    options: opts
-                };
+                const opts = []; document.querySelectorAll('.opt-row').forEach(row => opts.push({ name: row.querySelector('.opt-name').value, price: Number(row.querySelector('.opt-price').value), cutStock: Number(row.querySelector('.opt-cut').value) }));
+                return { name: document.getElementById('swal-name').value, cost: Number(document.getElementById('swal-cost').value), stock: Number(document.getElementById('swal-stock').value), img: document.getElementById('prev-img').src, options: opts };
             }
         });
 
@@ -751,28 +757,22 @@
             saveData(); renderStock(); renderPOS(); renderDashboard();
         }
     }
-
-    window.addOptRow = function() {
-        const div = document.createElement('div');
-        div.className = 'input-group mb-2 opt-row';
-        div.innerHTML = `<input class="form-control opt-name" value="ปกติ"><input type="number" class="form-control opt-price" placeholder="ราคา"><input type="number" class="form-control opt-cut" value="1"><button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button>`;
-        document.getElementById('opt-container').appendChild(div);
-    };
+    window.addOptRow = function() { document.getElementById('opt-container').insertAdjacentHTML('beforeend', `<div class="input-group mb-2 opt-row"><input class="form-control opt-name" value="ปกติ"><input type="number" class="form-control opt-price"><input type="number" class="form-control opt-cut" value="1"><button class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button></div>`); };
 
     function renderStock() {
         const tb = document.getElementById('stockTable'); tb.innerHTML = '';
         products.forEach(p => {
-            let price = p.options.map(o=>o.price).join('/');
-            tb.innerHTML += `<tr><td class="ps-4"><div class="d-flex align-items-center"><img src="${p.img}" style="width:40px;height:40px;object-fit:cover;" class="rounded border me-2"><span>${p.name}</span></div></td><td>${price}</td><td>${p.cost}</td><td class="${p.stock<=5?'text-danger fw-bold':''}">${p.stock}</td><td class="text-end pe-4"><button class="btn btn-sm btn-light border" onclick="openProductModal(${p.id})"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-sm btn-light border text-danger" onclick="delProd(${p.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            tb.innerHTML += `<tr><td class="ps-4"><div class="d-flex align-items-center"><img src="${p.img}" style="width:40px;height:40px;object-fit:cover;" class="rounded border me-2"><span>${p.name}</span></div></td><td>${p.options.map(o=>o.price).join('/')}</td><td>${p.cost}</td><td>${p.stock}</td><td class="text-end pe-4"><button class="btn btn-sm btn-light border" onclick="openProductModal(${p.id})"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-sm btn-light border text-danger" onclick="delProd(${p.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
         });
     }
     function delProd(id) { Swal.fire({title:'ลบสินค้า?',icon:'warning',showCancelButton:true,confirmButtonColor:'#d33'}).then(r=>{if(r.isConfirmed){products=products.filter(x=>x.id!==id);saveData();renderStock();renderPOS();}}) }
 
-    // --- 4. HISTORY ---
+    // --- 5. HISTORY ---
     function renderHistory() {
         const tb = document.getElementById('historyTable'); tb.innerHTML = '';
         transactions.slice().reverse().slice(0,50).forEach(t => {
-            tb.innerHTML += `<tr><td class="ps-4">${t.date}</td><td>${t.id}</td><td>${t.items.length} รายการ</td><td class="fw-bold text-success">${t.total.toLocaleString()}</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary me-1" onclick="openBillModal('${t.id}')"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delBill('${t.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            let itemsHtml = ''; t.items.forEach(i => itemsHtml += `<div class="d-flex justify-content-between mb-1"><span>${i.name} x${i.qty}</span><span>${(i.price*i.qty).toLocaleString()}</span></div>`);
+            tb.innerHTML += `<tr><td class="ps-4">${t.date}</td><td>${t.id}</td><td><span class="badge ${t.method=='CASH'?'bg-success':'bg-info'}">${t.method||'CASH'}</span></td><td class="fw-bold">${t.total.toLocaleString()}</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary me-1" onclick='Swal.fire({html:\`<div class="bill-slip"><div class="text-center mb-3 border-bottom border-dark pb-2"><h5 class="fw-bold mb-0">หว้านใหญ่ เพ็ท มาร์ท</h5><small>ใบเสร็จรับเงิน (${t.method||"CASH"})</small><br><small>${t.date}</small></div><div class="mb-3 border-bottom border-dark pb-2">${itemsHtml}</div><div class="d-flex justify-content-between fw-bold fs-5"><span>ยอดรวม</span><span>${t.total.toLocaleString()} ฿</span></div></div>\`, showCloseButton:true})'><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delBill('${t.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
         });
     }
     async function delBill(id) {
@@ -780,99 +780,55 @@
         if(pass === 'admin') { 
             const idx = transactions.findIndex(x=>x.id===id);
             if(idx > -1) {
-                transactions[idx].items.forEach(i => {
-                    let p = products.find(x=>x.id===i.id);
-                    if(p) p.stock += (i.qty * i.cutStock);
-                });
-                transactions.splice(idx,1); saveData(); renderHistory(); renderDashboard();
-                Swal.fire('ลบแล้ว','คืนสต๊อกเรียบร้อย','success');
+                transactions[idx].items.forEach(i => { let p = products.find(x=>x.id===i.id); if(p) p.stock += (i.qty * i.cutStock); });
+                transactions.splice(idx,1); saveData(); renderHistory(); renderDashboard(); Swal.fire('ลบแล้ว','คืนสต๊อกเรียบร้อย','success');
             }
         } else if(pass) Swal.fire('รหัสผิด','','error');
     }
 
-    // --- 5. PURCHASE ---
+    // --- 6. PURCHASE ---
     function renderPurchaseSection() {
-        const sel = document.getElementById('purchase-product');
-        sel.innerHTML = '<option value="">-- ค้นหาสินค้า --</option>';
+        const sel = document.getElementById('purchase-product'); sel.innerHTML = '<option value="">-- เลือก --</option>';
         products.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
         const tb = document.getElementById('purchaseHistoryTable'); tb.innerHTML = '';
         purchases.slice().reverse().slice(0,10).forEach((p, i) => {
             tb.innerHTML += `<tr><td>${p.date.split(' ')[0]}</td><td>${p.productName}</td><td class="text-success">+${p.qty}</td><td>${p.unitCost}</td><td><button class="btn btn-sm btn-light text-danger" onclick="delPurchase(${purchases.length-1-i})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
         });
     }
-    function updatePurchaseUnitCost() {
-        let id = document.getElementById('purchase-product').value;
-        let p = products.find(x=>x.id==id);
-        if(p) document.getElementById('purchase-cost').value = p.cost;
-    }
+    function updatePurchaseUnitCost() { let p=products.find(x=>x.id==document.getElementById('purchase-product').value); if(p) document.getElementById('purchase-cost').value = p.cost; }
     function confirmPurchase() {
-        let id = Number(document.getElementById('purchase-product').value);
-        let qty = Number(document.getElementById('purchase-qty').value);
-        let cost = Number(document.getElementById('purchase-cost').value);
-        if(!id || !qty) return Swal.fire('ข้อมูลไม่ครบ');
-        
-        let p = products.find(x=>x.id===id);
-        let oldVal = p.stock * p.cost;
-        let newVal = qty * cost;
-        p.stock += qty;
-        p.cost = Number(((oldVal+newVal)/p.stock).toFixed(2));
-        
+        let id=Number(document.getElementById('purchase-product').value), qty=Number(document.getElementById('purchase-qty').value), cost=Number(document.getElementById('purchase-cost').value);
+        if(!id||!qty) return;
+        let p=products.find(x=>x.id===id); let oldV=p.stock*p.cost, newV=qty*cost; p.stock+=qty; p.cost=Number(((oldV+newV)/p.stock).toFixed(2));
         purchases.push({date:new Date().toLocaleString('th-TH'), productName:p.name, productId:p.id, qty, unitCost:cost});
-        saveData(); renderPurchaseSection(); Swal.fire({icon:'success',title:'เพิ่มสต๊อกแล้ว',timer:1000,showConfirmButton:false, confirmButtonColor: '#569e83'});
-        document.getElementById('purchase-qty').value='';
+        saveData(); renderPurchaseSection(); Swal.fire({icon:'success',title:'เพิ่มสต๊อกแล้ว',timer:800,showConfirmButton:false});
     }
-    function delPurchase(idx) {
-        const p = purchases[idx];
-        const prod = products.find(x=>x.id===p.productId);
-        if(prod && prod.stock >= p.qty) {
-            prod.stock -= p.qty;
-            purchases.splice(idx,1);
-            saveData(); renderPurchaseSection();
-        } else { Swal.fire('ลบไม่ได้','สินค้าถูกขายไปแล้ว','error'); }
-    }
+    function delPurchase(i) { let p=purchases[i], prod=products.find(x=>x.id===p.productId); if(prod && prod.stock>=p.qty) { prod.stock-=p.qty; purchases.splice(i,1); saveData(); renderPurchaseSection(); } else Swal.fire('ลบไม่ได้','ของถูกขายไปแล้ว','error'); }
 
-    // --- 6. SETTINGS ---
+    // --- 7. SETTINGS ---
     function exportData() {
-        const data = JSON.stringify({ products, transactions, purchases });
-        const blob = new Blob([data], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `wanyai_backup_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
+        const data = JSON.stringify({ products, transactions, purchases, expenses });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], {type: 'application/json'})); a.download = `wanyai_backup.json`; a.click();
     }
-
-    function importData(input) {
-        const file = input.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = JSON.parse(e.target.result);
-                if(data.products && data.transactions) {
-                    Swal.fire({
-                        title: 'ยืนยันกู้คืนข้อมูล?', text: "ข้อมูลปัจจุบันจะถูกแทนที่ด้วยไฟล์นี้",
-                        icon: 'warning', showCancelButton: true, confirmButtonText: 'ใช่, กู้คืนเลย', confirmButtonColor: '#569e83'
-                    }).then((r) => {
-                        if(r.isConfirmed) {
-                            localStorage.setItem('products_v7', JSON.stringify(data.products));
-                            localStorage.setItem('transactions_v7', JSON.stringify(data.transactions));
-                            localStorage.setItem('purchases_v7', JSON.stringify(data.purchases || []));
-                            Swal.fire('สำเร็จ', 'รีโหลดหน้าเว็บเพื่อเริ่มใหม่', 'success').then(() => location.reload());
-                        }
-                    });
-                } else { Swal.fire('ไฟล์ไม่ถูกต้อง', 'โครงสร้างไฟล์ไม่ตรงกับระบบ', 'error'); }
-            } catch(err) { Swal.fire('Error', 'อ่านไฟล์ไม่ได้', 'error'); }
-        };
-        reader.readAsText(file);
+    function importData(inp) {
+        const r = new FileReader(); r.onload = e => {
+            const d = JSON.parse(e.target.result);
+            if(d.products) {
+                Swal.fire({title:'ยืนยันกู้คืน?', showCancelButton:true}).then(x => {
+                    if(x.isConfirmed) {
+                        localStorage.setItem('products_v9', JSON.stringify(d.products));
+                        localStorage.setItem('transactions_v9', JSON.stringify(d.transactions));
+                        localStorage.setItem('purchases_v9', JSON.stringify(d.purchases||[]));
+                        localStorage.setItem('expenses_v9', JSON.stringify(d.expenses||[]));
+                        location.reload();
+                    }
+                });
+            }
+        }; r.readAsText(inp.files[0]);
     }
+    function clearAllData() { Swal.fire({title:'ล้างข้อมูล?',showCancelButton:true,confirmButtonColor:'#d33'}).then(r => { if(r.isConfirmed) { localStorage.clear(); location.reload(); } }); }
 
-    function clearAllData() {
-        Swal.fire({title:'ล้างข้อมูลทั้งหมด?',text:'ไม่สามารถกู้คืนได้',icon:'warning',showCancelButton:true,confirmButtonColor:'#d33'}).then(r=>{
-            if(r.isConfirmed) { localStorage.clear(); location.reload(); }
-        });
-    }
-
-    // --- INIT ---
+    // INIT
     renderDashboard();
 </script>
 </body>
