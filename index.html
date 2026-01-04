@@ -777,7 +777,7 @@
     }
     async function delBill(id) {
         const {value:pass} = await Swal.fire({title:'Admin Password', input:'password'});
-        if(pass === 'admin') { 
+        if(pass === 'Gg6106') { 
             const idx = transactions.findIndex(x=>x.id===id);
             if(idx > -1) {
                 transactions[idx].items.forEach(i => { let p = products.find(x=>x.id===i.id); if(p) p.stock += (i.qty * i.cutStock); });
@@ -833,3 +833,4 @@
 </script>
 </body>
 </html>
+
