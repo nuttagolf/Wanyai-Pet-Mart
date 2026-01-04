@@ -67,17 +67,18 @@
         .btn-theme { background-color: var(--primary-color); color: white; border: none; border-radius: 10px; }
         .btn-theme:hover { background-color: var(--primary-dark); color: white; }
         
+        /* Account Table Style */
+        .acc-row { transition: 0.1s; }
+        .acc-row:hover { background-color: #f8f9fa; }
+        
         /* Bill Style */
         .bill-slip { font-family: 'Courier New', monospace; text-align: left; background: #fff; padding: 15px; border: 1px solid #ddd; position: relative; font-size: 14px; color: #000; }
         .bill-slip::before, .bill-slip::after { content: ''; position: absolute; left: 0; width: 100%; height: 5px; background: radial-gradient(circle, #fff 5px, transparent 6px); background-size: 15px 15px; }
-        .bill-slip::before { top: -5px; transform: rotate(180deg); }
-        .bill-slip::after { bottom: -5px; }
+        .bill-slip::before { top: -5px; transform: rotate(180deg); } .bill-slip::after { bottom: -5px; }
 
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: 280px; }
-            .sidebar.active { transform: translateX(0); }
-            .main-content { margin-left: 0; padding: 15px; }
-            .mobile-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+            .sidebar { transform: translateX(-100%); width: 280px; } .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 15px; } .mobile-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
             .mobile-overlay.active { display: block; }
         }
     </style>
@@ -777,7 +778,7 @@
     }
     async function delBill(id) {
         const {value:pass} = await Swal.fire({title:'Admin Password', input:'password'});
-        if(pass === 'Gg6106') { 
+        if(pass === 'admin') { 
             const idx = transactions.findIndex(x=>x.id===id);
             if(idx > -1) {
                 transactions[idx].items.forEach(i => { let p = products.find(x=>x.id===i.id); if(p) p.stock += (i.qty * i.cutStock); });
@@ -833,4 +834,3 @@
 </script>
 </body>
 </html>
-
