@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wan Yai Pet Mart POS (Fixed Bill)</title>
+    <title>Wan Yai Pet Mart POS (Final)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -26,6 +26,7 @@
             background-color: var(--bg-color); 
             font-family: 'Sarabun', sans-serif; 
             overflow-x: hidden;
+            /* Pattern รอยเท้าแมว */
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 30c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm0-8c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm-6 5c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm12 0c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm-6 12c-3.3 0-6-2.7-6-6 0-1 .3-1.9.8-2.7.5-.7 1.2-1.2 2-1.5 1-.4 2.1-.6 3.2-.6 1.1 0 2.2.2 3.2.6.8.3 1.5.8 2 1.5.5.8.8 1.7.8 2.7 0 3.3-2.7 6-6 6z' fill='%23569e83' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E");
         }
 
@@ -74,7 +75,7 @@
         ::-webkit-scrollbar-thumb:hover { background: var(--primary-color); }
         
         /* Bill Style */
-        .bill-slip { font-family: 'Courier New', monospace; text-align: left; background: #fff; padding: 15px; border: 1px solid #ddd; position: relative; }
+        .bill-slip { font-family: 'Courier New', monospace; text-align: left; background: #fff; padding: 15px; border: 1px solid #ddd; position: relative; font-size: 14px; color: #000; }
         .bill-slip::before, .bill-slip::after { content: ''; position: absolute; left: 0; width: 100%; height: 5px; background: radial-gradient(circle, #fff 5px, transparent 6px); background-size: 15px 15px; }
         .bill-slip::before { top: -5px; transform: rotate(180deg); }
         .bill-slip::after { bottom: -5px; }
@@ -111,7 +112,7 @@
     </nav>
 
     <div class="p-3 border-top text-center">
-        <small class="text-muted d-block mb-2">Wan Yai Pet Mart V.7.2</small>
+        <small class="text-muted d-block mb-2">Wan Yai Pet Mart V.8.0 Final</small>
         <a class="btn btn-sm btn-outline-secondary w-100" onclick="showSection('settings')"><i class="fa-solid fa-gear"></i> ตั้งค่าระบบ</a>
     </div>
 </div>
@@ -387,6 +388,37 @@
         return canvas.toDataURL();
     }
 
+    // --- IMAGE RESIZE & BASE64 (FIX for Disappearing Images) ---
+    function handleImageUpload(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    // Resize to 300px max
+                    const maxWidth = 300;
+                    const scaleFactor = maxWidth / img.width;
+                    const newWidth = maxWidth;
+                    const newHeight = img.height * scaleFactor;
+
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                    
+                    // Convert to persistent Base64 string
+                    const dataURI = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('prev-img').src = dataURI;
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     // --- Navigation & Sidebar ---
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('active');
@@ -443,7 +475,7 @@
         document.getElementById('totalStockValue').innerText = stockVal.toLocaleString() + ' ฿';
         document.getElementById('lowStockCount').innerText = lowStock.length;
 
-        // Chart 1: Hourly Sales
+        // Charts
         let hourlyData = new Array(24).fill(0);
         todayTxs.forEach(t => {
             let hour = 0;
@@ -461,22 +493,15 @@
                 datasets: [{
                     label: 'ยอดขาย (บาท)',
                     data: hourlyData.slice(6, 23),
-                    borderColor: '#569e83',
-                    backgroundColor: 'rgba(86, 158, 131, 0.1)',
+                    borderColor: '#569e83', backgroundColor: 'rgba(86, 158, 131, 0.1)',
                     fill: true, tension: 0.4, pointBackgroundColor: '#f4a261'
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} } }
         });
 
-        // Chart 2: Top Products
         let productMap = {};
-        transactions.forEach(t => {
-            t.items.forEach(i => {
-                if(!productMap[i.name]) productMap[i.name] = 0;
-                productMap[i.name] += i.qty;
-            });
-        });
+        transactions.forEach(t => { t.items.forEach(i => { if(!productMap[i.name]) productMap[i.name] = 0; productMap[i.name] += i.qty; }); });
         let sortedProd = Object.keys(productMap).map(key => ({name: key, qty: productMap[key]})).sort((a,b)=>b.qty - a.qty).slice(0,5);
         
         const ctxTop = document.getElementById('topProductChart').getContext('2d');
@@ -557,13 +582,11 @@
         const p = products.find(x => x.id === pid);
         const opt = p.options[optIdx];
         const currentInCart = cart.reduce((acc, c) => (c.id === pid ? acc + (c.qty * c.cutStock) : acc), 0);
-        
         if(p.stock < (currentInCart + opt.cutStock)) return Swal.fire({toast:true, position:'top-end', icon:'warning', title:'สินค้าไม่พอ', timer:1500});
         
         const exist = cart.find(c => c.id === pid && c.optionName === opt.name);
         if(exist) exist.qty++;
         else cart.push({ id: p.id, name: p.name, optionName: opt.name, price: opt.price, cutStock: opt.cutStock, qty: 1 });
-        
         renderCart();
     }
 
@@ -590,7 +613,7 @@
         document.getElementById('cartCount').innerText = count;
     }
 
-    // --- CHECKOUT & BILL LOGIC (FIXED) ---
+    // --- CHECKOUT & BILL ---
     function checkout() {
         if(cart.length === 0) return;
         const total = cart.reduce((sum, c) => sum + (c.price * c.qty), 0);
@@ -637,11 +660,7 @@
 
         let itemsHtml = '';
         tx.items.forEach(i => {
-            itemsHtml += `
-                <div class="d-flex justify-content-between mb-1">
-                    <span>${i.name} x${i.qty}</span>
-                    <span>${(i.price * i.qty).toLocaleString()}</span>
-                </div>`;
+            itemsHtml += `<div class="d-flex justify-content-between mb-1"><span>${i.name} x${i.qty}</span><span>${(i.price * i.qty).toLocaleString()}</span></div>`;
         });
 
         const slipHtml = `
@@ -652,24 +671,15 @@
                     <small>วันที่: ${tx.date}</small><br>
                     <small>เลขที่: ${tx.id}</small>
                 </div>
-                <div class="mb-3 border-bottom border-dark pb-2">
-                    ${itemsHtml}
-                </div>
-                <div class="d-flex justify-content-between fw-bold fs-5">
-                    <span>ยอดรวม</span>
-                    <span>${tx.total.toLocaleString()} ฿</span>
-                </div>
+                <div class="mb-3 border-bottom border-dark pb-2">${itemsHtml}</div>
+                <div class="d-flex justify-content-between fw-bold fs-5"><span>ยอดรวม</span><span>${tx.total.toLocaleString()} ฿</span></div>
             </div>
         `;
 
         Swal.fire({
-            html: slipHtml,
-            showCloseButton: true,
-            showDenyButton: true,
-            confirmButtonText: 'ปิด',
-            denyButtonText: '<i class="fa-solid fa-copy"></i> คัดลอก',
-            confirmButtonColor: '#569e83',
-            denyButtonColor: '#4a6fa5'
+            html: slipHtml, showCloseButton: true, showDenyButton: true,
+            confirmButtonText: 'ปิด', denyButtonText: '<i class="fa-solid fa-copy"></i> คัดลอก',
+            confirmButtonColor: '#569e83', denyButtonColor: '#4a6fa5'
         }).then((res) => {
             if (res.isDenied) {
                 let text = `[บิลเงินสด] หว้านใหญ่ เพ็ท มาร์ท\nวันที่: ${tx.date}\nเลขที่: ${tx.id}\n----------------\n`;
@@ -703,14 +713,14 @@
                 <div class="text-start">
                     <div class="text-center mb-3">
                         <img id="prev-img" src="${p.img}" class="rounded shadow-sm border" style="width:100px;height:100px;object-fit:cover;">
-                        <div class="mt-2"><label class="btn btn-sm btn-light border">เปลี่ยนรูป <input type="file" hidden onchange="document.getElementById('prev-img').src = window.URL.createObjectURL(this.files[0])"></label></div>
+                        <div class="mt-2"><label class="btn btn-sm btn-light border">เปลี่ยนรูป <input type="file" hidden accept="image/*" onchange="handleImageUpload(this)"></label></div>
                     </div>
                     <label>ชื่อสินค้า</label><input id="swal-name" class="form-control mb-2" value="${p.name}">
                     <div class="row mb-2">
                         <div class="col"><label>ทุนเฉลี่ย</label><input type="number" id="swal-cost" class="form-control" value="${p.cost}"></div>
                         <div class="col"><label>สต๊อก</label><input type="number" id="swal-stock" class="form-control" value="${p.stock}"></div>
                     </div>
-                    <label>ราคาขาย (สามารถมีหลายราคา)</label>
+                    <label>ราคาขาย</label>
                     <div id="opt-container">${optHtml}</div>
                     <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background-color: var(--secondary-color);" onclick="addOptRow()">+ เพิ่มราคาขาย</button>
                 </div>
@@ -785,7 +795,6 @@
         const sel = document.getElementById('purchase-product');
         sel.innerHTML = '<option value="">-- ค้นหาสินค้า --</option>';
         products.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
-        
         const tb = document.getElementById('purchaseHistoryTable'); tb.innerHTML = '';
         purchases.slice().reverse().slice(0,10).forEach((p, i) => {
             tb.innerHTML += `<tr><td>${p.date.split(' ')[0]}</td><td>${p.productName}</td><td class="text-success">+${p.qty}</td><td>${p.unitCost}</td><td><button class="btn btn-sm btn-light text-danger" onclick="delPurchase(${purchases.length-1-i})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
@@ -841,12 +850,8 @@
                 const data = JSON.parse(e.target.result);
                 if(data.products && data.transactions) {
                     Swal.fire({
-                        title: 'ยืนยันกู้คืนข้อมูล?',
-                        text: "ข้อมูลปัจจุบันจะถูกแทนที่ด้วยไฟล์นี้",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'ใช่, กู้คืนเลย',
-                        confirmButtonColor: '#569e83'
+                        title: 'ยืนยันกู้คืนข้อมูล?', text: "ข้อมูลปัจจุบันจะถูกแทนที่ด้วยไฟล์นี้",
+                        icon: 'warning', showCancelButton: true, confirmButtonText: 'ใช่, กู้คืนเลย', confirmButtonColor: '#569e83'
                     }).then((r) => {
                         if(r.isConfirmed) {
                             localStorage.setItem('products_v7', JSON.stringify(data.products));
