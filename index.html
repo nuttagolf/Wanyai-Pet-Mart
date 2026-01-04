@@ -3,765 +3,864 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบริหารร้าน หว้านใหญ่ เพ็ท มาร์ท (V.6.6 Stock Correction)</title>
+    <title>Wan Yai Pet Mart POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet"> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <style>
-        body { background-color: #f0f7f4; font-family: 'Sarabun', sans-serif; }
-        .sidebar { min-height: 100vh; background-color: #2d6a4f; color: white; }
-        .nav-link { color: rgba(255,255,255,0.8); cursor: pointer; padding: 15px 20px; border-radius: 0 25px 25px 0; margin-bottom: 5px; transition: 0.2s; }
-        .nav-link:hover, .nav-link.active { background-color: #40916c; color: white; font-weight: bold; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
-        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; background: white; }
-        .product-card { cursor: pointer; border: 2px solid transparent; overflow: hidden; position: relative; transition: 0.2s; }
-        .product-card:hover { border-color: #40916c; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .product-img { height: 120px; object-fit: cover; background-color: #e9ecef; width: 100%; }
-        .btn-green { background-color: #2d6a4f; color: white; }
-        .btn-green:hover { background-color: #1b4332; color: white; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
-        .option-btn { transition: 0.2s; border: 1px solid #ddd; }
-        .option-btn:hover { background-color: #e9ecef; border-color: #2d6a4f; transform: scale(1.02); }
+        :root {
+            /* Palette จากโลโก้ */
+            --primary-color: #569e83;  /* เขียวหลังคา/ชื่อร้าน */
+            --primary-dark: #3d7a62;   /* เขียวเข้มสำหรับ Hover */
+            --secondary-color: #4a6fa5; /* สีกรมท่าจางๆ สำหรับ Text รอง */
+            --accent-color: #f4a261;   /* สีส้มอุ้งเท้า/เพ็ทมาร์ท */
+            --bg-color: #fdfbf7;       /* สีครีมอ่อนๆ พื้นหลัง */
+            --card-shadow: 0 4px 20px rgba(86, 158, 131, 0.15); /* เงาสีเขียวจางๆ */
+        }
         
-        /* Bill Style */
-        .bill-wrapper { font-family: 'Courier New', monospace; text-align: left; font-size: 14px; color: #333; background: #fff; padding: 10px; border: 1px dashed #999; }
-        .bill-header { text-align: center; border-bottom: 1px dashed #333; padding-bottom: 10px; margin-bottom: 10px; }
-        .bill-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .bill-total { border-top: 1px dashed #333; margin-top: 10px; padding-top: 10px; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between; }
+        body { 
+            background-color: var(--bg-color); 
+            font-family: 'Sarabun', sans-serif; 
+            overflow-x: hidden;
+            /* สร้าง Pattern รอยเท้าแมวด้วย SVG inline */
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 30c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm0-8c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm-6 5c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm12 0c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm-6 12c-3.3 0-6-2.7-6-6 0-1 .3-1.9.8-2.7.5-.7 1.2-1.2 2-1.5 1-.4 2.1-.6 3.2-.6 1.1 0 2.2.2 3.2.6.8.3 1.5.8 2 1.5.5.8.8 1.7.8 2.7 0 3.3-2.7 6-6 6z' fill='%23569e83' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+
+        h1, h2, h3, h4, h5, h6, .brand-font {
+            font-family: 'Fredoka', 'Sarabun', sans-serif; /* ฟอนต์หัวข้อที่ดูนุ่มนวลขึ้น */
+        }
+        
+        /* Sidebar */
+        .sidebar { 
+            min-height: 100vh; 
+            background-color: rgba(255, 255, 255, 0.95); /* โปร่งแสงเล็กน้อยให้เห็นลาย */
+            border-right: 1px solid #e9ecef; 
+            position: fixed; 
+            width: 250px; 
+            z-index: 1000; 
+            transition: 0.3s; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+        .sidebar-header { padding: 25px; border-bottom: 2px dashed #e9ecef; }
+        .nav-link { color: #6c757d; padding: 12px 20px; margin: 6px 15px; border-radius: 20px; transition: 0.2s; font-weight: 500; }
+        .nav-link:hover { background-color: #ebf5f0; color: var(--primary-color); }
+        .nav-link.active { background-color: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(86, 158, 131, 0.3); }
+        .nav-link i { width: 25px; text-align: center; margin-right: 10px; }
+        
+        /* Main Content */
+        .main-content { margin-left: 250px; padding: 30px; transition: 0.3s; }
+        .section-header { margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Cards */
+        .card-custom { 
+            border: none; 
+            border-radius: 16px; 
+            box-shadow: var(--card-shadow); 
+            background: white; 
+            transition: 0.2s; 
+            position: relative;
+            overflow: hidden;
+        }
+        .card-custom::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            opacity: 0.8;
+        }
+        .card-custom:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(86, 158, 131, 0.2); }
+        
+        /* Product Grid */
+        .product-card { 
+            cursor: pointer; 
+            transition: 0.2s; 
+            border: 2px solid #f0f0f0; 
+            overflow: hidden; 
+            border-radius: 12px; 
+            background: white;
+        }
+        .product-card:hover { border-color: var(--accent-color); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(244, 162, 97, 0.2); }
+        .product-img { height: 140px; object-fit: cover; width: 100%; background-color: #f8f9fa; }
+        
+        /* Buttons */
+        .btn-theme { 
+            background-color: var(--primary-color); 
+            color: white; 
+            border: none; 
+            border-radius: 10px;
+        }
+        .btn-theme:hover { background-color: var(--primary-dark); color: white; }
+        
+        /* Badge Colors Override */
+        .text-primary { color: var(--primary-color) !important; }
+        .bg-primary { background-color: var(--primary-color) !important; }
+        .border-primary { border-color: var(--primary-color) !important; }
+        
+        .text-warning { color: var(--accent-color) !important; }
+        .bg-warning { background-color: var(--accent-color) !important; }
+        .border-warning { border-color: var(--accent-color) !important; }
+
+        /* Utils */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-color); }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 280px; }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 15px; }
+            .mobile-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+            .mobile-overlay.active { display: block; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar p-0 d-none d-md-block fixed-top" style="height:100vh; z-index:1000;">
-            <div class="p-4 text-center">
-                <div class="bg-white rounded-circle d-inline-flex justify-content-center align-items-center mb-2 shadow-sm" style="width: 70px; height: 70px;">
-                    <i class="fa-solid fa-paw fa-2x" style="color:#2d6a4f"></i>
-                </div>
-                <h5 class="fw-bold mt-2">หว้านใหญ่<br>เพ็ท มาร์ท</h5>
-                <span class="badge bg-danger text-white rounded-pill">V.6.6 Stock Fix</span>
-            </div>
-            <nav class="nav flex-column pe-2">
-                <a class="nav-link active" onclick="showSection('dashboard')"><i class="fa-solid fa-chart-pie me-2"></i> ภาพรวมร้าน</a>
-                <a class="nav-link" onclick="showSection('pos')"><i class="fa-solid fa-cash-register me-2"></i> ขายหน้าร้าน (POS)</a>
-                <a class="nav-link" onclick="showSection('history')"><i class="fa-solid fa-clock-rotate-left me-2"></i> ประวัติการขาย</a>
-                <a class="nav-link" onclick="showSection('purchase')"><i class="fa-solid fa-truck-ramp-box me-2"></i> รับสินค้าเข้า</a>
-                <a class="nav-link" onclick="showSection('products')"><i class="fa-solid fa-boxes-stacked me-2"></i> ฐานข้อมูลสินค้า</a>
-                <a class="nav-link" onclick="showSection('settings')"><i class="fa-solid fa-gear me-2"></i> ตั้งค่า/สำรองข้อมูล</a>
-            </nav>
+<div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
+<div class="sidebar d-flex flex-column" id="sidebar">
+    <div class="sidebar-header d-flex align-items-center gap-3">
+        <div class="bg-white border border-2 border-success text-warning rounded-circle d-flex justify-content-center align-items-center shadow-sm" style="width: 55px; height: 55px; border-color: var(--primary-color)!important; color: var(--accent-color)!important;">
+            <i class="fa-solid fa-paw fa-2x"></i>
         </div>
-
-        <div class="col-md-10 offset-md-2 p-4">
-            <div class="d-md-none mb-3 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold text-success"><i class="fa-solid fa-paw"></i> หว้านใหญ่ เพ็ท มาร์ท</h5>
-                <button class="btn btn-green btn-sm" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i> เมนู</button>
-            </div>
-            <div id="mobileMenu" class="d-md-none bg-white shadow p-3 rounded mb-3" style="display:none;">
-                <a class="d-block p-2 text-dark text-decoration-none border-bottom" onclick="showSection('pos')">🛒 ขายหน้าร้าน</a>
-                <a class="d-block p-2 text-dark text-decoration-none" onclick="showSection('dashboard')">📊 ภาพรวม</a>
-            </div>
-
-            <div id="dashboard" class="section">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="mb-0 text-secondary fw-bold"><i class="fa-solid fa-chart-line"></i> Dashboard</h3>
-            <small class="text-muted">ภาพรวมธุรกิจประจำวันที่ <span id="dashDate"></span></small>
-        </div>
-        <div>
-             <button class="btn btn-sm btn-outline-secondary" onclick="renderDashboard()"><i class="fa-solid fa-rotate"></i> รีเฟรช</button>
+        <div style="line-height: 1.1;">
+            <h5 class="fw-bold mb-0" style="color: var(--primary-color);">หว้านใหญ่</h5>
+            <h6 class="fw-bold mb-0" style="color: var(--accent-color);">เพ็ท มาร์ท</h6>
         </div>
     </div>
+    
+    <nav class="nav flex-column mt-3 flex-grow-1">
+        <a class="nav-link active" onclick="showSection('dashboard')"><i class="fa-solid fa-chart-pie"></i> แดชบอร์ด</a>
+        <a class="nav-link" onclick="showSection('pos')"><i class="fa-solid fa-cash-register"></i> ขายหน้าร้าน</a>
+        <a class="nav-link" onclick="showSection('products')"><i class="fa-solid fa-boxes-stacked"></i> สินค้า/สต๊อก</a>
+        <a class="nav-link" onclick="showSection('history')"><i class="fa-solid fa-clock-rotate-left"></i> ประวัติขาย</a>
+        <a class="nav-link" onclick="showSection('purchase')"><i class="fa-solid fa-truck-ramp-box"></i> รับของเข้า</a>
+    </nav>
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card card-custom p-3 border-start border-4 border-primary h-100">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">ยอดขายวันนี้</small>
-                        <h3 id="totalSales" class="fw-bold text-primary mb-0 mt-1">0 ฿</h3>
-                    </div>
-                    <div class="bg-primary bg-opacity-10 p-2 rounded text-primary">
-                        <i class="fa-solid fa-wallet fa-lg"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-custom p-3 border-start border-4 border-success h-100">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">กำไรสุทธิ (Margin)</small>
-                        <h3 id="netProfit" class="fw-bold text-success mb-0 mt-1">0 ฿</h3>
-                        <small id="profitMargin" class="text-success fw-bold" style="font-size: 0.8rem;">(0%)</small>
-                    </div>
-                    <div class="bg-success bg-opacity-10 p-2 rounded text-success">
-                        <i class="fa-solid fa-sack-dollar fa-lg"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-custom p-3 border-start border-4 border-info h-100">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">จำนวนบิล / เฉลี่ยต่อบิล</small>
-                        <h3 id="totalBills" class="fw-bold text-info mb-0 mt-1">0</h3>
-                        <small id="avgBill" class="text-muted" style="font-size: 0.8rem;">Avg: 0 ฿</small>
-                    </div>
-                    <div class="bg-info bg-opacity-10 p-2 rounded text-info">
-                        <i class="fa-solid fa-receipt fa-lg"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-custom p-3 border-start border-4 border-warning h-100">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">มูลค่าสต๊อกคงเหลือ</small>
-                        <h3 id="totalStockValue" class="fw-bold text-warning mb-0 mt-1">0 ฿</h3>
-                        <small class="text-muted" style="font-size: 0.8rem;">ต้นทุนจม</small>
-                    </div>
-                    <div class="bg-warning bg-opacity-10 p-2 rounded text-warning">
-                        <i class="fa-solid fa-boxes-stacked fa-lg"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card card-custom p-3 h-100">
-                <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-crown text-warning"></i> 5 อันดับสินค้าขายดี (จำนวน)</h6>
-                <div style="height: 250px; position: relative;">
-                    <canvas id="topProductChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-8">
-            <div class="card card-custom p-3 h-100">
-                <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-clock text-primary"></i> ช่วงเวลาการขาย (Sales Traffic)</h6>
-                <div style="height: 250px;">
-                    <canvas id="hourlySalesChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3">
-        <div class="col-md-8">
-            <div class="card card-custom p-0 h-100">
-                <div class="p-3 border-bottom bg-light">
-                    <h6 class="fw-bold mb-0 text-secondary">📦 ธุรกรรมล่าสุด (วันนี้)</h6>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 text-center small">
-                        <thead class="table-light text-muted">
-                            <tr>
-                                <th>เวลา</th>
-                                <th>เลขบิล</th>
-                                <th>สินค้า (รายการแรก)</th>
-                                <th>ยอดเงิน</th>
-                                <th>กำไร</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recentTxTable"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-custom p-0 h-100">
-                 <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold mb-0 text-danger">⚠️ เตือนสต๊อกต่ำ</h6>
-                    <span class="badge bg-danger rounded-pill" id="lowStockCount">0</span>
-                </div>
-                <ul id="lowStockList" class="list-group list-group-flush small" style="max-height: 300px; overflow-y: auto;"></ul>
-            </div>
-        </div>
+    <div class="p-3 border-top text-center">
+        <small class="text-muted d-block mb-2">Wan Yai Pet Mart V.7.1</small>
+        <a class="btn btn-sm btn-outline-secondary w-100" onclick="showSection('settings')"><i class="fa-solid fa-gear"></i> ตั้งค่าระบบ</a>
     </div>
 </div>
 
-            <div id="pos" class="section" style="display:none;">
-                <div class="row h-100">
-                    <div class="col-md-8">
-                        <div class="d-flex gap-2 mb-3 align-items-center">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                                <input type="text" id="searchPos" class="form-control border-start-0 ps-0" placeholder="พิมพ์ชื่อสินค้า..." onkeyup="renderPOS()">
-                            </div>
+<div class="main-content">
+    <div class="d-md-none d-flex justify-content-between align-items-center mb-3">
+        <button class="btn btn-white shadow-sm text-success" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <span class="fw-bold text-success">หว้านใหญ่ เพ็ท มาร์ท</span>
+        <div style="width: 40px;"></div>
+    </div>
+
+    <div id="dashboard" class="section">
+        <div class="section-header">
+            <div>
+                <h4 class="fw-bold mb-0 text-dark">ภาพรวมธุรกิจ</h4>
+                <small class="text-muted">ข้อมูลประจำวันที่ <span id="dashDate"></span></small>
+            </div>
+            <button class="btn btn-white bg-white border shadow-sm text-success" onclick="renderDashboard()"><i class="fa-solid fa-rotate-right"></i> รีเฟรช</button>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card card-custom p-3 h-100 border-start border-0">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted fw-bold">ยอดขายวันนี้</small>
+                            <h3 id="totalSales" class="fw-bold text-primary my-1">0 ฿</h3>
                         </div>
-                        <div class="row g-2" id="productGrid"></div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card card-custom p-0 h-100 d-flex flex-column shadow-sm">
-                            <div class="p-3 bg-success text-white rounded-top d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0"><i class="fa-solid fa-basket-shopping"></i> ตะกร้า</h5>
-                                <span class="badge bg-white text-success" id="cartCount">0</span>
-                            </div>
-                            <div class="flex-grow-1 overflow-auto p-2" id="cartItems" style="background-color: #f8f9fa; max-height: 55vh;"></div>
-                            <div class="p-3 border-top bg-white rounded-bottom">
-                                <div class="d-flex justify-content-between align-items-end mb-2">
-                                    <small class="text-muted">รวมทั้งสิ้น</small>
-                                    <h3 class="text-success fw-bold mb-0" id="cartTotal">0 ฿</h3>
-                                </div>
-                                <button class="btn btn-green w-100 py-3 fw-bold shadow-sm mb-2" onclick="checkout()">
-                                    <i class="fa-solid fa-check-circle"></i> รับเงิน (F2)
-                                </button>
-                                <button class="btn btn-outline-danger w-100 btn-sm" onclick="clearCart()">ล้างรายการ</button>
-                            </div>
+                        <div class="text-primary bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
+                             <i class="fa-solid fa-wallet fa-lg"></i>
                         </div>
                     </div>
+                    <div class="mt-2 text-muted small"><i class="fa-solid fa-receipt"></i> <span id="totalBills">0</span> บิล</div>
                 </div>
             </div>
-
-            <div id="purchase" class="section" style="display:none;">
-                <h3 class="mb-4">🚚 รับสินค้าเข้าสต๊อก</h3>
-                <div class="row">
-                    <div class="col-md-5">
-                        <div class="card card-custom p-4 mb-3">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">เลือกสินค้า</label>
-                                <select id="purchase-product" class="form-select" onchange="updatePurchaseUnitCost()"><option value="">-- ค้นหาสินค้า --</option></select>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label class="form-label text-muted small">จำนวน (ชิ้น)</label>
-                                    <input type="number" id="purchase-qty" class="form-control" placeholder="0">
-                                </div>
-                                <div class="col">
-                                    <label class="form-label text-muted small">ทุน/หน่วย (บาท)</label>
-                                    <input type="number" id="purchase-cost" class="form-control" placeholder="0.00">
-                                </div>
-                            </div>
-                            <button class="btn btn-green w-100" onclick="confirmPurchase()"><i class="fa-solid fa-save"></i> บันทึกรับของ</button>
+            <div class="col-md-6 col-lg-3">
+                <div class="card card-custom p-3 h-100 border-start border-0">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted fw-bold">กำไรขั้นต้น (Est.)</small>
+                            <h3 id="netProfit" class="fw-bold text-success my-1">0 ฿</h3>
+                        </div>
+                        <div class="text-success bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
+                             <i class="fa-solid fa-sack-dollar fa-lg"></i>
                         </div>
                     </div>
-                    <div class="col-md-7">
-                        <div class="card card-custom p-4">
-                            <h6 class="text-muted mb-3">ประวัติการรับของล่าสุด (กดลบเพื่อแก้ไข)</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm text-center align-middle">
-                                    <thead class="table-light"><tr><th>วันที่</th><th>สินค้า</th><th>จำนวน</th><th>ทุน/หน่วย</th><th>จัดการ</th></tr></thead>
-                                    <tbody id="purchaseHistoryTable"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="mt-2 text-muted small">Margin: <span id="profitMargin" class="text-success fw-bold">0%</span></div>
                 </div>
             </div>
-
-            <div id="products" class="section" style="display:none;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>📦 ฐานข้อมูลสินค้า</h3>
-                    <button class="btn btn-green shadow-sm" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า</button>
+            <div class="col-md-6 col-lg-3">
+                <div class="card card-custom p-3 h-100 border-start border-0">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted fw-bold">มูลค่าสต๊อกรวม</small>
+                            <h3 id="totalStockValue" class="fw-bold text-warning my-1">0 ฿</h3>
+                        </div>
+                        <div class="text-warning bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
+                             <i class="fa-solid fa-boxes-stacked fa-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-muted small">ต้นทุนจมในร้าน</div>
                 </div>
-                <div class="card card-custom p-0 overflow-hidden">
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card card-custom p-3 h-100 border-start border-0">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted fw-bold">สินค้าต้องเติม</small>
+                            <h3 id="lowStockCount" class="fw-bold text-danger my-1">0</h3>
+                        </div>
+                        <div class="text-danger bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
+                             <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-muted small">รายการต่ำกว่าเกณฑ์</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-lg-8">
+                <div class="card card-custom p-4 h-100">
+                    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-clock"></i> ช่วงเวลาการขาย (Sales Traffic)</h6>
+                    <div style="height: 300px;"><canvas id="hourlySalesChart"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card card-custom p-4 h-100">
+                    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-crown text-warning"></i> 5 อันดับขายดี (จำนวน)</h6>
+                    <div style="height: 250px;"><canvas id="topProductChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-8">
+                <div class="card card-custom p-0 h-100">
+                    <div class="p-3 border-bottom bg-white"><h6 class="fw-bold mb-0">📝 ธุรกรรมล่าสุด (วันนี้)</h6></div>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light text-secondary small">
-                                <tr><th class="ps-4">สินค้า</th><th>รูปแบบการขาย</th><th>ต้นทุน/หน่วย</th><th>คงเหลือ</th><th class="text-end pe-4">จัดการ</th></tr>
-                            </thead>
-                            <tbody id="stockTable"></tbody>
+                        <table class="table table-hover align-middle mb-0 text-center small">
+                            <thead class="bg-light text-secondary"><tr><th>เวลา</th><th>เลขบิล</th><th>สินค้า</th><th>ยอดรวม</th><th>สถานะ</th></tr></thead>
+                            <tbody id="recentTxTable"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
+            <div class="col-lg-4">
+                <div class="card card-custom p-0 h-100">
+                    <div class="p-3 border-bottom bg-white d-flex justify-content-between"><h6 class="fw-bold mb-0 text-danger">⚠️ สินค้าใกล้หมด</h6></div>
+                    <ul id="lowStockList" class="list-group list-group-flush small" style="max-height: 300px; overflow-y: auto;"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <div id="settings" class="section" style="display:none;">
-                <h3 class="mb-4">⚙️ ตั้งค่าระบบ</h3>
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="card card-custom p-5 text-center h-100">
-                            <i class="fa-solid fa-cloud-arrow-down fa-3x text-primary mb-3"></i>
-                            <h4>สำรองข้อมูล (Backup)</h4>
-                            <p class="text-muted small">โหลดไฟล์ข้อมูลเก็บไว้ในเครื่อง</p>
-                            <button class="btn btn-outline-primary" onclick="exportData()">ดาวน์โหลดไฟล์ JSON</button>
-                        </div>
+    <div id="pos" class="section" style="display:none;">
+        <div class="row h-100 g-3">
+            <div class="col-lg-8 d-flex flex-column h-100">
+                <div class="card card-custom p-3 mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="searchPos" class="form-control border-start-0 shadow-none" placeholder="ค้นหาสินค้า (ชื่อ/บาร์โค้ด)..." onkeyup="renderPOS()">
                     </div>
-                    <div class="col-md-6">
-                        <div class="card card-custom p-5 text-center h-100">
-                            <i class="fa-solid fa-trash-can fa-3x text-danger mb-3"></i>
-                            <h4>ล้างข้อมูลทั้งหมด</h4>
-                            <p class="text-muted small">เริ่มต้นระบบใหม่ (ข้อมูลเก่าจะหายไป)</p>
-                            <button class="btn btn-danger text-white" onclick="clearAllData()">ล้างข้อมูล</button>
+                </div>
+                <div class="flex-grow-1 overflow-auto pe-1" style="max-height: 80vh;">
+                    <div class="row g-2" id="productGrid"></div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card card-custom h-100 d-flex flex-column shadow-lg" style="border: 2px solid var(--primary-color);">
+                    <div class="p-3 text-white rounded-top d-flex justify-content-between align-items-center" style="background-color: var(--primary-color);">
+                        <h5 class="mb-0"><i class="fa-solid fa-basket-shopping"></i> ตะกร้า</h5>
+                        <span class="badge bg-white text-success fw-bold" id="cartCount">0</span>
+                    </div>
+                    <div class="flex-grow-1 overflow-auto p-2" id="cartItems" style="background-color: #fffdf9;"></div>
+                    <div class="p-3 border-top bg-white rounded-bottom">
+                        <div class="d-flex justify-content-between align-items-end mb-3">
+                            <span class="text-muted">รวมสุทธิ</span>
+                            <h2 class="text-success fw-bold mb-0" id="cartTotal">0 ฿</h2>
                         </div>
+                        <button class="btn w-100 py-3 fw-bold fs-5 shadow-sm mb-2 text-white" style="background-color: var(--accent-color); border:none;" onclick="checkout()">
+                            <i class="fa-regular fa-credit-card"></i> รับเงิน (F2)
+                        </button>
+                        <button class="btn btn-outline-secondary w-100 btn-sm" onclick="clearCart()">ล้างรายการ</button>
                     </div>
                 </div>
             </div>
-            
-            <div id="history" class="section" style="display:none;">
-                <h3 class="mb-4">📜 ประวัติการขาย</h3>
-                <div class="card card-custom p-3">
+        </div>
+    </div>
+
+    <div id="products" class="section" style="display:none;">
+        <div class="section-header">
+            <h4 class="fw-bold text-dark">จัดการสินค้า</h4>
+            <button class="btn btn-theme shadow-sm" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า</button>
+        </div>
+        <div class="card card-custom p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary small">
+                        <tr><th class="ps-4">สินค้า</th><th>ราคาขาย</th><th>ทุน/หน่วย</th><th>คงเหลือ</th><th class="text-end pe-4">จัดการ</th></tr>
+                    </thead>
+                    <tbody id="stockTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="history" class="section" style="display:none;">
+        <div class="section-header">
+            <h4 class="fw-bold text-dark">ประวัติการขาย</h4>
+            <div></div>
+        </div>
+        <div class="card card-custom p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light"><tr><th class="ps-4">วันที่/เวลา</th><th>เลขบิล</th><th>รายการ</th><th>ยอดรวม</th><th class="text-end pe-4">ตัวเลือก</th></tr></thead>
+                    <tbody id="historyTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="purchase" class="section" style="display:none;">
+        <h4 class="fw-bold mb-4 text-dark">รับสินค้าเข้าสต๊อก</h4>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card card-custom p-4">
+                    <label class="form-label text-muted small">เลือกสินค้า</label>
+                    <select id="purchase-product" class="form-select mb-3" onchange="updatePurchaseUnitCost()"><option value="">-- ค้นหาสินค้า --</option></select>
+                    
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label text-muted small">จำนวน (ชิ้น)</label>
+                            <input type="number" id="purchase-qty" class="form-control" placeholder="0">
+                        </div>
+                        <div class="col">
+                            <label class="form-label text-muted small">ทุน/หน่วย</label>
+                            <input type="number" id="purchase-cost" class="form-control" placeholder="0.00">
+                        </div>
+                    </div>
+                    <button class="btn btn-theme w-100" onclick="confirmPurchase()"><i class="fa-solid fa-save"></i> บันทึกรับของ</button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card card-custom p-4">
+                    <h6 class="text-muted mb-3">ประวัติการรับของล่าสุด</h6>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr><th>เวลา</th><th>เลขที่บิล</th><th>ยอดรวม</th><th>จัดการ</th></tr>
-                            </thead>
-                            <tbody id="historyTable"></tbody>
+                        <table class="table table-sm text-center align-middle">
+                            <thead class="table-light"><tr><th>วันที่</th><th>สินค้า</th><th>จำนวน</th><th>ทุน/หน่วย</th><th>ลบ</th></tr></thead>
+                            <tbody id="purchaseHistoryTable"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
-</div>
 
-<div class="modal fade" id="optionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="optionModalTitle">เลือกแบบการขาย</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body pt-2">
-                <div id="optionList" class="d-grid gap-2"></div>
+    <div id="settings" class="section" style="display:none;">
+        <div class="container-fluid p-0">
+            <h4 class="fw-bold mb-4 text-dark">ตั้งค่าและจัดการข้อมูล</h4>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card card-custom p-4 text-center h-100">
+                        <div class="text-primary mb-3"><i class="fa-solid fa-cloud-arrow-down fa-3x"></i></div>
+                        <h5>สำรองข้อมูล (Backup)</h5>
+                        <p class="text-muted small">ดาวน์โหลดข้อมูลทั้งหมดเป็นไฟล์ JSON</p>
+                        <button class="btn btn-outline-primary w-100 mt-auto" onclick="exportData()">ดาวน์โหลดไฟล์</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-custom p-4 text-center h-100">
+                        <div class="text-success mb-3"><i class="fa-solid fa-cloud-arrow-up fa-3x"></i></div>
+                        <h5>กู้คืนข้อมูล (Restore)</h5>
+                        <p class="text-muted small">นำไฟล์ JSON ที่เคย Backup ไว้ กลับมาใช้งาน</p>
+                        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+                        <button class="btn btn-outline-success w-100 mt-auto" onclick="document.getElementById('importFile').click()">เลือกไฟล์กู้คืน</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-custom p-4 text-center h-100">
+                        <div class="text-danger mb-3"><i class="fa-solid fa-triangle-exclamation fa-3x"></i></div>
+                        <h5>ล้างระบบ (Reset)</h5>
+                        <p class="text-muted small">ลบข้อมูลทุกอย่าง เริ่มต้นใหม่</p>
+                        <button class="btn btn-outline-danger w-100 mt-auto" onclick="clearAllData()">ล้างข้อมูลทั้งหมด</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
 </div>
 
 <script>
-    // --- Database ---
-    let products = JSON.parse(localStorage.getItem('products_v6')) || [];
-    let transactions = JSON.parse(localStorage.getItem('transactions_v6')) || [];
-    let purchases = JSON.parse(localStorage.getItem('purchases_v6')) || [];
+    // --- Global Data & State ---
+    let products = JSON.parse(localStorage.getItem('products_v7')) || [];
+    let transactions = JSON.parse(localStorage.getItem('transactions_v7')) || [];
+    let purchases = JSON.parse(localStorage.getItem('purchases_v7')) || [];
     let cart = [];
+    let topProductChartInstance = null;
+    let hourlyChartInstance = null;
 
-    // --- AUTO IMAGE ---
+    // --- Auto Avatar Generator (Updated Colors) ---
     function generateAvatar(text) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = 200; canvas.height = 200;
-        const colors = ['#f4a261', '#2a9d8f', '#e76f51', '#264653', '#e9c46a', '#8ecae6'];
+        // ใช้สีจากโลโก้
+        const colors = ['#569e83', '#f4a261', '#4a6fa5', '#88b7a2', '#f7c59f'];
         let hash = 0; for (let i=0; i<text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
         ctx.fillStyle = colors[Math.abs(hash) % colors.length];
         ctx.fillRect(0, 0, 200, 200);
-        const initials = text ? text.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : "?";
         ctx.fillStyle = 'white'; ctx.font = 'bold 100px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(initials, 100, 100);
+        ctx.fillText(text ? text.charAt(0).toUpperCase() : "?", 100, 100);
         return canvas.toDataURL();
     }
 
-    // --- Data Check ---
-    let dataChanged = false;
-    products.forEach(p => { if(!p.img || p.img === "" || p.img.includes('placehold.co')) { p.img = generateAvatar(p.name); dataChanged = true; } });
-    if(dataChanged) localStorage.setItem('products_v6', JSON.stringify(products));
-
-    // --- Navigation ---
+    // --- Navigation & Sidebar ---
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+        document.getElementById('mobileOverlay').classList.toggle('active');
+    }
     function showSection(id) {
         document.querySelectorAll('.section').forEach(el => el.style.display = 'none');
         document.getElementById(id).style.display = 'block';
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-        event.target.closest('.nav-link')?.classList.add('active');
-        document.getElementById('mobileMenu').style.display = 'none';
+        const links = document.querySelectorAll('.nav-link');
+        if(id === 'dashboard') links[0].classList.add('active');
+        if(id === 'pos') { links[1].classList.add('active'); renderPOS(); }
+        if(id === 'products') { links[2].classList.add('active'); renderStock(); }
+        if(id === 'history') { links[3].classList.add('active'); renderHistory(); }
+        if(id === 'purchase') { links[4].classList.add('active'); renderPurchaseSection(); }
+        if(id === 'settings') links[5].classList.add('active');
         
-        if(id === 'pos') renderPOS();
-        if(id === 'products') renderStock();
-        if(id === 'history') renderHistory();
-        if(id === 'purchase') renderPurchaseSection();
+        if(window.innerWidth < 768) toggleSidebar();
         if(id === 'dashboard') renderDashboard();
     }
-    function toggleMobileMenu() {
-        let m = document.getElementById('mobileMenu');
-        m.style.display = m.style.display === 'none' ? 'block' : 'none';
-    }
     function saveData() {
-        localStorage.setItem('products_v6', JSON.stringify(products));
-        localStorage.setItem('transactions_v6', JSON.stringify(transactions));
-        localStorage.setItem('purchases_v6', JSON.stringify(purchases));
-        renderDashboard();
+        localStorage.setItem('products_v7', JSON.stringify(products));
+        localStorage.setItem('transactions_v7', JSON.stringify(transactions));
+        localStorage.setItem('purchases_v7', JSON.stringify(purchases));
     }
 
-    // --- POS System ---
+    // --- 1. DASHBOARD LOGIC (Updated Colors) ---
+    function renderDashboard() {
+        const today = new Date();
+        const dateStr = today.toLocaleDateString('th-TH');
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        const todayEnd = todayStart + 86400000;
+        
+        document.getElementById('dashDate').innerText = dateStr;
+
+        const todayTxs = transactions.filter(t => {
+            if(t.timestamp) return t.timestamp >= todayStart && t.timestamp < todayEnd;
+            return t.date.startsWith(dateStr.split('/')[0] + '/'); 
+        });
+
+        let totalSales = 0, totalProfit = 0;
+        todayTxs.forEach(t => { totalSales += t.total; totalProfit += t.profit; });
+        
+        let stockVal = 0, lowStock = [];
+        products.forEach(p => { 
+            stockVal += (p.stock * p.cost);
+            if(p.stock <= 5) lowStock.push(p);
+        });
+
+        document.getElementById('totalSales').innerText = totalSales.toLocaleString() + ' ฿';
+        document.getElementById('netProfit').innerText = totalProfit.toLocaleString() + ' ฿';
+        document.getElementById('totalBills').innerText = todayTxs.length;
+        document.getElementById('profitMargin').innerText = totalSales > 0 ? ((totalProfit/totalSales)*100).toFixed(1) + '%' : '0%';
+        document.getElementById('totalStockValue').innerText = stockVal.toLocaleString() + ' ฿';
+        document.getElementById('lowStockCount').innerText = lowStock.length;
+
+        // Chart 1: Hourly Sales
+        let hourlyData = new Array(24).fill(0);
+        todayTxs.forEach(t => {
+            let hour = 0;
+            if(t.timestamp) { hour = new Date(t.timestamp).getHours(); } 
+            else { try { hour = parseInt(t.date.split(' ')[1].split(':')[0]); } catch(e){} }
+            if(hour >= 0 && hour < 24) hourlyData[hour] += t.total;
+        });
+        
+        const ctxHourly = document.getElementById('hourlySalesChart').getContext('2d');
+        if(hourlyChartInstance) hourlyChartInstance.destroy();
+        hourlyChartInstance = new Chart(ctxHourly, {
+            type: 'line',
+            data: {
+                labels: Array.from({length:17}, (_,i)=> (i+6)+":00"),
+                datasets: [{
+                    label: 'ยอดขาย (บาท)',
+                    data: hourlyData.slice(6, 23),
+                    borderColor: '#569e83', // Green Primary
+                    backgroundColor: 'rgba(86, 158, 131, 0.1)',
+                    fill: true, tension: 0.4, pointBackgroundColor: '#f4a261' // Accent dot
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} } }
+        });
+
+        // Chart 2: Top Products
+        let productMap = {};
+        transactions.forEach(t => {
+            t.items.forEach(i => {
+                if(!productMap[i.name]) productMap[i.name] = 0;
+                productMap[i.name] += i.qty;
+            });
+        });
+        let sortedProd = Object.keys(productMap).map(key => ({name: key, qty: productMap[key]})).sort((a,b)=>b.qty - a.qty).slice(0,5);
+        
+        const ctxTop = document.getElementById('topProductChart').getContext('2d');
+        if(topProductChartInstance) topProductChartInstance.destroy();
+        topProductChartInstance = new Chart(ctxTop, {
+            type: 'doughnut',
+            data: {
+                labels: sortedProd.map(x=>x.name),
+                datasets: [{
+                    data: sortedProd.map(x=>x.qty),
+                    // Palette: Green, Orange, Blue, Light Green, Light Orange
+                    backgroundColor: ['#569e83', '#f4a261', '#4a6fa5', '#88b7a2', '#f7c59f'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {position:'right', labels:{boxWidth:12}} } }
+        });
+
+        const recentBody = document.getElementById('recentTxTable');
+        recentBody.innerHTML = '';
+        todayTxs.slice().reverse().slice(0, 10).forEach(t => {
+            let itemStr = t.items[0] ? t.items[0].name + (t.items.length>1 ? ` (+${t.items.length-1})`:'') : '-';
+            recentBody.innerHTML += `<tr><td>${t.date.split(' ')[1]}</td><td><span class="badge bg-light text-dark border">${t.id}</span></td><td class="text-start">${itemStr}</td><td class="fw-bold text-success">${t.total.toLocaleString()}</td><td><i class="fa-solid fa-circle-check text-success"></i></td></tr>`;
+        });
+        if(todayTxs.length === 0) recentBody.innerHTML = '<tr><td colspan="5" class="text-muted py-4">ยังไม่มีรายการขายวันนี้</td></tr>';
+
+        const list = document.getElementById('lowStockList');
+        list.innerHTML = '';
+        lowStock.forEach(p => {
+            list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center"><div class="d-flex align-items-center"><img src="${p.img}" class="rounded me-2" style="width:30px;height:30px;"><span>${p.name}</span></div><span class="badge bg-danger rounded-pill">${p.stock}</span></li>`;
+        });
+        if(lowStock.length===0) list.innerHTML = '<li class="list-group-item text-center text-success border-0"><i class="fa-solid fa-check-circle"></i> สต๊อกปกติ</li>';
+    }
+
+    // --- 2. POS SYSTEM ---
     function renderPOS() {
         const grid = document.getElementById('productGrid');
-        const search = document.getElementById('searchPos').value.toLowerCase();
+        const term = document.getElementById('searchPos').value.toLowerCase();
         grid.innerHTML = '';
-        const filtered = products.filter(p => p.name.toLowerCase().includes(search));
+        const filtered = products.filter(p => p.name.toLowerCase().includes(term));
+        
         if(filtered.length === 0) { grid.innerHTML = '<div class="col-12 text-center text-muted py-5">ไม่พบสินค้า</div>'; return; }
+        
         filtered.forEach(p => {
-            let opacity = p.stock <= 0 ? 'opacity-50 grayscale' : '';
-            let stockBadge = p.stock <= 0 ? '<span class="position-absolute top-50 start-50 translate-middle badge bg-danger shadow">สินค้าหมด</span>' : `<span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75 text-white" style="font-size:0.8rem">${p.stock} หน่วย</span>`;
-            let priceDisplay = '';
-            if(p.options && p.options.length > 0) {
-                let prices = p.options.map(o => o.price);
-                priceDisplay = (Math.min(...prices) === Math.max(...prices)) ? `${prices[0]} ฿` : `${Math.min(...prices)} - ${Math.max(...prices)} ฿`;
-            } else { priceDisplay = 'ยังไม่ตั้งราคา'; }
+            let isOut = p.stock <= 0;
+            let priceTxt = (p.options && p.options.length) ? Math.min(...p.options.map(o=>o.price)) + "฿+" : "N/A";
             grid.innerHTML += `
-                <div class="col-6 col-md-4 col-lg-3" onclick="openOptionSelect(${p.id})">
-                    <div class="card product-card h-100 ${opacity}">
-                        <div class="position-relative">
-                            <img src="${p.img}" class="product-img w-100">
-                            ${stockBadge}
-                        </div>
-                        <div class="card-body p-2 text-center">
-                            <h6 class="card-title text-truncate small mb-1 fw-bold">${p.name}</h6>
-                            <p class="text-success fw-bold mb-0">${priceDisplay}</p>
-                        </div>
+            <div class="col-6 col-md-4 col-lg-3" onclick="selectProduct(${p.id})">
+                <div class="card product-card h-100 ${isOut ? 'opacity-50 grayscale' : ''}">
+                    <div class="position-relative">
+                        <img src="${p.img}" class="product-img">
+                        <span class="position-absolute top-0 end-0 m-2 badge ${isOut?'bg-danger':'bg-success'} shadow">${p.stock}</span>
                     </div>
-                </div>`;
+                    <div class="card-body p-2 text-center">
+                        <small class="fw-bold d-block text-truncate text-dark">${p.name}</small>
+                        <span class="text-warning fw-bold">${priceTxt}</span>
+                    </div>
+                </div>
+            </div>`;
         });
-        renderCart();
     }
 
-    // --- MODAL & CART ---
-    function openOptionSelect(id) {
+    function selectProduct(id) {
         const p = products.find(x => x.id === id);
-        if(!p || p.stock <= 0) return Swal.fire({ icon: 'error', title: 'สินค้าหมด!', timer: 1000, showConfirmButton: false });
-        if (!p.options || p.options.length === 0) return Swal.fire('เตือน', 'ยังไม่ได้ตั้งราคาขาย', 'warning');
-        if (p.options.length === 1) { addToCart(p.id, 0); } 
-        else {
-            let optionsHtml = '<div class="d-grid gap-2">';
-            p.options.forEach((opt, idx) => {
-                optionsHtml += `<button class="btn btn-outline-success text-start d-flex justify-content-between p-3" onclick="swal.clickConfirm(); addToCart(${p.id}, ${idx})"><span>${opt.name} <small class="text-muted">(ตัดสต๊อก ${opt.cutStock})</small></span><span class="fw-bold">${opt.price} ฿</span></button>`;
+        if(!p || p.stock <= 0) return Swal.fire({icon:'error', title:'สินค้าหมด', timer:1000, showConfirmButton:false});
+        
+        if(p.options.length > 1) {
+            let html = '<div class="d-grid gap-2">';
+            p.options.forEach((o, i) => {
+                html += `<button class="btn btn-outline-success d-flex justify-content-between py-2" onclick="addToCart(${p.id}, ${i}); Swal.close()"><span>${o.name}</span><b>${o.price}฿</b></button>`;
             });
-            optionsHtml += '</div>';
-            Swal.fire({ title: p.name, html: optionsHtml, showConfirmButton: false, showCloseButton: true });
+            Swal.fire({ title: p.name, html: html+'</div>', showConfirmButton: false, confirmButtonColor: '#569e83' });
+        } else {
+            addToCart(p.id, 0);
         }
     }
 
-    function addToCart(productId, optionIdx) {
-        const p = products.find(x => x.id === productId);
-        const opt = p.options[optionIdx];
-        let inCartQty = 0;
-        cart.forEach(c => { if(c.id === productId) inCartQty += (c.cutStock * c.qty); });
-        if (p.stock < (inCartQty + opt.cutStock)) return Swal.fire({ icon: 'warning', title: 'สินค้าไม่พอ', text: `เหลือ ${p.stock} ชิ้น` });
-        const exist = cart.find(c => c.id === productId && c.optionName === opt.name);
+    function addToCart(pid, optIdx) {
+        const p = products.find(x => x.id === pid);
+        const opt = p.options[optIdx];
+        const currentInCart = cart.reduce((acc, c) => (c.id === pid ? acc + (c.qty * c.cutStock) : acc), 0);
+        
+        if(p.stock < (currentInCart + opt.cutStock)) return Swal.fire({toast:true, position:'top-end', icon:'warning', title:'สินค้าไม่พอ', timer:1500});
+        
+        const exist = cart.find(c => c.id === pid && c.optionName === opt.name);
         if(exist) exist.qty++;
         else cart.push({ id: p.id, name: p.name, optionName: opt.name, price: opt.price, cutStock: opt.cutStock, qty: 1 });
+        
         renderCart();
-        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1000 }).fire({ icon: 'success', title: 'เพิ่มแล้ว' });
     }
 
     function renderCart() {
         const div = document.getElementById('cartItems');
-        if(cart.length === 0) {
-            div.innerHTML = '<div class="text-center text-muted mt-5 opacity-50"><i class="fa-solid fa-basket-shopping fa-3x mb-3"></i><br>ยังไม่มีสินค้า</div>';
-            document.getElementById('cartTotal').innerText = '0 ฿';
-            document.getElementById('cartCount').innerText = '0';
-            return;
-        }
+        let total = 0, count = 0;
         let html = '<ul class="list-group list-group-flush small">';
-        let total = 0; let count = 0;
         cart.forEach((c, i) => {
             total += c.price * c.qty; count += c.qty;
-            html += `<li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-1"><div class="text-truncate" style="max-width: 140px;"><span class="fw-bold">${c.name}</span><br><span class="badge bg-secondary text-white rounded-pill" style="font-size:0.7em">${c.optionName}</span> <span class="text-muted" style="font-size:0.8em">${c.price} x ${c.qty}</span></div><div class="d-flex align-items-center gap-2"><span class="fw-bold">${(c.price*c.qty).toLocaleString()}</span><i class="fa-solid fa-trash text-danger" style="cursor:pointer" onclick="cart.splice(${i},1);renderCart()"></i></div></li>`;
+            html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center px-1 bg-transparent">
+                <div class="text-truncate" style="max-width: 130px;">
+                    <span class="fw-bold text-dark">${c.name}</span><br>
+                    <span class="text-muted" style="font-size:0.8em">${c.optionName} (${c.price}x${c.qty})</span>
+                </div>
+                <div>
+                    <span class="fw-bold me-2 text-dark">${(c.price*c.qty).toLocaleString()}</span>
+                    <i class="fa-solid fa-trash text-danger" style="cursor:pointer" onclick="cart.splice(${i},1);renderCart()"></i>
+                </div>
+            </li>`;
         });
-        div.innerHTML = html + '</ul>';
+        div.innerHTML = cart.length ? html+'</ul>' : '<div class="text-center text-muted mt-5 opacity-50"><i class="fa-solid fa-basket-shopping fa-3x"></i><br>ว่างเปล่า</div>';
         document.getElementById('cartTotal').innerText = total.toLocaleString() + ' ฿';
         document.getElementById('cartCount').innerText = count;
     }
-    function clearCart() { cart = []; renderCart(); }
 
-    // --- CHECKOUT ---
     function checkout() {
         if(cart.length === 0) return;
+        const total = cart.reduce((sum, c) => sum + (c.price * c.qty), 0);
         Swal.fire({
-            title: 'ยืนยันยอดรับเงิน',
-            html: `<h1 class="text-success fw-bold">${document.getElementById('cartTotal').innerText}</h1>`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: '✅ รับเงิน',
-            cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#2d6a4f'
-        }).then((result) => { if (result.isConfirmed) processCheckout(); });
+            title: 'ยอดรับเงิน',
+            html: `<h1 class="text-success fw-bold">${total.toLocaleString()}</h1>`,
+            showCancelButton: true, confirmButtonText: '✅ รับเงิน', confirmButtonColor: '#f4a261', cancelButtonText: 'ยกเลิก'
+        }).then((res) => {
+            if(res.isConfirmed) processTransaction(total);
+        });
     }
 
-    function processCheckout() {
-        let totalCost = 0, totalSale = 0;
+    function processTransaction(saleTotal) {
+        let costTotal = 0;
         cart.forEach(c => {
             let p = products.find(x => x.id === c.id);
-            if(p) { 
-                let deductAmount = c.cutStock * c.qty;
-                p.stock -= deductAmount; 
-                totalCost += (p.cost * deductAmount);
-                totalSale += (c.price * c.qty);
+            if(p) {
+                let cut = c.cutStock * c.qty;
+                p.stock -= cut;
+                costTotal += (p.cost * cut);
             }
         });
-        let billId = Date.now().toString().slice(-6);
-        let txn = { id: billId, date: new Date().toLocaleString('th-TH'), items: [...cart], total: totalSale, profit: totalSale - totalCost };
-        transactions.push(txn);
-        saveData();
-        cart = []; renderCart(); renderPOS();
-        showDigitalBill(txn);
-    }
-
-    function showDigitalBill(txn) {
-        let itemsHtml = '';
-        txn.items.forEach(i => { itemsHtml += `<div class="bill-row"><span>${i.name} (${i.optionName}) x${i.qty}</span><span>${(i.price * i.qty).toLocaleString()}</span></div>`; });
-        Swal.fire({
-            html: `<div class="bill-wrapper"><div class="bill-header"><strong>หว้านใหญ่ เพ็ท มาร์ท</strong><br>บริการส่งฟรีในพื้นที่!<br>วันที่: ${txn.date}<br>เลขบิล: ${txn.id}</div>${itemsHtml}<div class="bill-total"><span>ยอดรวมสุทธิ</span><span>${txn.total.toLocaleString()} ฿</span></div></div><div class="mt-3 text-center"><small class="text-muted">แคปหน้าจอเพื่อส่งให้ลูกค้า</small></div>`,
-            showConfirmButton: true, confirmButtonText: 'ปิด', showDenyButton: true, denyButtonText: 'คัดลอก', denyButtonColor: '#0d6efd'
-        }).then((res) => {
-            if(res.isDenied) {
-                let textBill = `[บิลเงินสด] หว้านใหญ่ เพ็ท มาร์ท\nวันที่: ${txn.date}\nเลขบิล: ${txn.id}\n------------------\n`;
-                txn.items.forEach(i => { textBill += `${i.name} (${i.optionName}) x${i.qty} = ${(i.price*i.qty).toLocaleString()}\n`; });
-                textBill += `------------------\nยอดรวม: ${txn.total.toLocaleString()} บาท\nขอบคุณที่อุดหนุนครับ!`;
-                navigator.clipboard.writeText(textBill);
-                Swal.fire('คัดลอกแล้ว', '', 'success');
-            }
-        });
-    }
-
-    // --- History & Admin Delete ---
-    function renderHistory() {
-        const tbody = document.getElementById('historyTable');
-        tbody.innerHTML = '';
-        transactions.slice().reverse().slice(0, 50).forEach(t => {
-            tbody.innerHTML += `
-                <tr>
-                    <td><small>${t.date}</small></td>
-                    <td>${t.id}</td>
-                    <td>${t.total.toLocaleString()}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick='showDigitalBill(${JSON.stringify(t)})'>ดูบิล</button>
-                        <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteBill('${t.id}')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    async function deleteBill(id) {
-        const { value: password } = await Swal.fire({
-            title: 'Admin Only',
-            text: "กรอกรหัสเพื่อลบบิล (สต๊อกจะคืนอัตโนมัติ)",
-            input: 'password',
-            inputPlaceholder: 'Enter Password',
-            showCancelButton: true,
-            confirmButtonText: 'ยืนยันลบ',
-            cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#d33'
-        });
-
-        if (password === 'Gg6106') {
-            const txnIndex = transactions.findIndex(t => t.id === id);
-            if (txnIndex > -1) {
-                const txn = transactions[txnIndex];
-                txn.items.forEach(item => {
-                    const product = products.find(p => p.id === item.id);
-                    if (product) product.stock += (item.qty * item.cutStock);
-                });
-                transactions.splice(txnIndex, 1);
-                saveData();
-                renderHistory();
-                Swal.fire('ลบสำเร็จ!', 'คืนสต๊อกเรียบร้อยแล้ว', 'success');
-            }
-        } else if (password) {
-            Swal.fire('รหัสผ่านผิด', '', 'error');
-        }
-    }
-
-    // --- Purchase Management (NEW: Correction) ---
-    function renderPurchaseSection() {
-        const sel = document.getElementById('purchase-product');
-        sel.innerHTML = '<option value="">-- เลือกสินค้า --</option>';
-        products.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
         
-        const tbody = document.getElementById('purchaseHistoryTable');
-        tbody.innerHTML = '';
-        // Add index to allow deletion
-        purchases.slice().reverse().slice(0,10).forEach((p, displayIdx) => {
-            // Calculate real index in the main array
-            let realIdx = purchases.length - 1 - displayIdx;
-            
-            tbody.innerHTML += `
-                <tr>
-                    <td>${p.date.split(' ')[0]}</td>
-                    <td>${p.productName}</td>
-                    <td class="text-success">+${p.qty}</td>
-                    <td>${p.unitCost}</td>
-                    <td><button class="btn btn-sm btn-outline-danger" onclick="deletePurchase(${realIdx})"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>`;
+        const tx = {
+            id: Date.now().toString().slice(-6),
+            timestamp: Date.now(), 
+            date: new Date().toLocaleString('th-TH'),
+            items: [...cart],
+            total: saleTotal,
+            profit: saleTotal - costTotal
+        };
+        
+        transactions.push(tx);
+        saveData();
+        cart = []; renderCart(); renderPOS(); renderDashboard();
+        
+        let slip = `[บิลเงินสด] หว้านใหญ่ เพ็ท มาร์ท\nวันที่: ${tx.date}\n----------------\n`;
+        tx.items.forEach(i => slip += `${i.name} (${i.qty}) = ${i.price*i.qty}\n`);
+        slip += `----------------\nรวม: ${tx.total.toLocaleString()} บาท`;
+        
+        Swal.fire({
+            icon: 'success', title: 'รับเงินเรียบร้อย', 
+            html: '<small class="text-muted">บันทึกยอดขายแล้ว</small>',
+            confirmButtonText: 'ปิด', showDenyButton: true, denyButtonText: 'คัดลอกบิล', confirmButtonColor: '#569e83', denyButtonColor: '#4a6fa5'
+        }).then((r) => {
+            if(r.isDenied) { navigator.clipboard.writeText(slip); Swal.fire('คัดลอกแล้ว','','success'); }
         });
     }
+    function clearCart() { cart=[]; renderCart(); }
 
-    async function deletePurchase(index) {
-        const { value: password } = await Swal.fire({
-            title: 'Admin Only',
-            text: "ต้องการลบรายการรับของนี้? (สต๊อกจะถูกหักออก)",
-            input: 'password',
-            inputPlaceholder: 'Enter Password',
-            showCancelButton: true,
-            confirmButtonText: 'ยืนยันลบ',
-            confirmButtonColor: '#d33'
-        });
-
-        if (password === 'Gg6106') {
-            const p = purchases[index];
-            // Find product to deduct stock
-            const product = products.find(prod => prod.name === p.productName || prod.id === p.productId); // Try match by ID or Name
-            
-            if (product) {
-                if (product.stock >= p.qty) {
-                    product.stock -= p.qty;
-                    purchases.splice(index, 1);
-                    saveData();
-                    renderPurchaseSection();
-                    Swal.fire('เรียบร้อย', `ลบรายการรับของและหักสต๊อกออก ${p.qty} ชิ้นแล้ว`, 'success');
-                } else {
-                    Swal.fire('ทำไม่ได้', 'สต๊อกคงเหลือปัจจุบันน้อยกว่ายอดที่รับเข้า (อาจจะขายไปแล้ว)', 'error');
-                }
-            } else {
-                // Product deleted? Just delete log
-                purchases.splice(index, 1);
-                saveData();
-                renderPurchaseSection();
-                Swal.fire('ลบประวัติ', 'ไม่พบสินค้าในฐานข้อมูลแล้ว แต่ลบประวัติให้เรียบร้อย', 'success');
-            }
-        } else if (password) {
-            Swal.fire('รหัสผ่านผิด', '', 'error');
-        }
-    }
-
-    function updatePurchaseUnitCost() {
-        let p = products.find(x => x.id == document.getElementById('purchase-product').value);
-        if(p) document.getElementById('purchase-cost').value = p.cost;
-    }
-    function confirmPurchase() {
-        let id = parseInt(document.getElementById('purchase-product').value);
-        let qty = parseInt(document.getElementById('purchase-qty').value);
-        let cost = parseFloat(document.getElementById('purchase-cost').value);
-        if(!id || !qty || isNaN(cost)) return Swal.fire({icon:'error', title:'ข้อมูลไม่ครบ'});
-        let p = products.find(x => x.id === id);
-        let oldVal = p.stock * p.cost;
-        let newVal = qty * cost;
-        p.stock += qty;
-        p.cost = parseFloat(((oldVal + newVal) / p.stock).toFixed(2));
-        // Add productId for safer referencing
-        purchases.push({ date: new Date().toLocaleString('th-TH'), productName: p.name, productId: p.id, qty, unitCost: cost });
-        saveData(); renderPurchaseSection();
-        Swal.fire({icon:'success', title: 'เพิ่มสต็อกเรียบร้อย', timer: 1500, showConfirmButton:false});
-        document.getElementById('purchase-qty').value = '';
-    }
-
-    // --- Product Logic ---
+    // --- 3. PRODUCT MGMT ---
     async function openProductModal(id = null) {
-        let p = id ? products.find(x => x.id === id) : { name: '', cost: '', stock: '', img: '', options: [] };
-        if(!p.options) p.options = [];
-        if(!p.img) p.img = generateAvatar(p.name || "?");
+        const p = id ? products.find(x=>x.id===id) : { name:'', cost:0, stock:0, img:'', options:[{name:'ปกติ', price:0, cutStock:1}] };
+        if(!p.img) p.img = generateAvatar(p.name||"?");
+        
+        let optHtml = p.options.map(o => `
+            <div class="input-group mb-2 opt-row">
+                <input type="text" class="form-control opt-name" placeholder="ชื่อรุ่น" value="${o.name}">
+                <input type="number" class="form-control opt-price" placeholder="ราคาขาย" value="${o.price}">
+                <input type="number" class="form-control opt-cut" placeholder="ตัดสต๊อก" value="${o.cutStock}">
+                <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button>
+            </div>`).join('');
 
-        const { value: formValues } = await Swal.fire({
-            title: id ? 'แก้ไขข้อมูลสินค้า' : 'เพิ่มสินค้าใหม่',
+        const { value: form } = await Swal.fire({
+            title: id ? 'แก้ไขสินค้า' : 'เพิ่มสินค้าใหม่',
             width: 600,
             html: `
-                <div class="text-start font-sarabun">
+                <div class="text-start">
                     <div class="text-center mb-3">
-                        <img id="preview-img" src="${p.img}" class="rounded border shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
-                        <br>
-                        <label class="btn btn-sm btn-light mt-2 border">
-                            <i class="fa-solid fa-camera"></i> เปลี่ยนรูป
-                            <input type="file" id="swal-file" hidden accept="image/*" onchange="previewImage()">
-                        </label>
+                        <img id="prev-img" src="${p.img}" class="rounded shadow-sm border" style="width:100px;height:100px;object-fit:cover;">
+                        <div class="mt-2"><label class="btn btn-sm btn-light border">เปลี่ยนรูป <input type="file" hidden onchange="document.getElementById('prev-img').src = window.URL.createObjectURL(this.files[0])"></label></div>
                     </div>
-                    <div class="mb-3"><label class="fw-bold small">ชื่อสินค้า</label><input id="swal-name" class="form-control" value="${p.name}" placeholder="ชื่อสินค้า"></div>
-                    <div class="row mb-3">
-                        <div class="col"><label class="fw-bold small">ต้นทุนเฉลี่ย/หน่วย</label><input id="swal-cost" type="number" class="form-control" value="${p.cost}"></div>
-                        <div class="col"><label class="fw-bold small text-success">สต๊อกคงเหลือ</label><input id="swal-stock" type="number" class="form-control border-success" value="${p.stock}"></div>
+                    <label>ชื่อสินค้า</label><input id="swal-name" class="form-control mb-2" value="${p.name}">
+                    <div class="row mb-2">
+                        <div class="col"><label>ทุนเฉลี่ย</label><input type="number" id="swal-cost" class="form-control" value="${p.cost}"></div>
+                        <div class="col"><label>สต๊อก</label><input type="number" id="swal-stock" class="form-control" value="${p.stock}"></div>
                     </div>
-                    <hr>
-                    <label class="fw-bold small mb-2"><i class="fa-solid fa-tags"></i> วิธีการขาย (ต้องมีอย่างน้อย 1 แบบ)</label>
-                    <div id="options-container">
-                        ${p.options.map(opt => `<div class="input-group mb-2 option-row"><input type="text" class="form-control opt-name" value="${opt.name}"><input type="number" class="form-control opt-price" value="${opt.price}"><input type="number" class="form-control opt-cut" value="${opt.cutStock}"><button class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button></div>`).join('')}
-                    </div>
-                    <button class="btn btn-sm btn-outline-primary w-100 border-dashed" onclick="addOptionRow()">+ เพิ่มวิธีการขาย</button>
+                    <label>ราคาขาย (สามารถมีหลายราคา)</label>
+                    <div id="opt-container">${optHtml}</div>
+                    <button type="button" class="btn btn-sm w-100 mt-2 text-white" style="background-color: var(--secondary-color);" onclick="addOptRow()">+ เพิ่มราคาขาย</button>
                 </div>
             `,
-            showCancelButton: true, confirmButtonText: 'บันทึก', confirmButtonColor: '#2d6a4f',
+            confirmButtonText: 'บันทึก', showCancelButton: true, confirmButtonColor: '#569e83',
             preConfirm: () => {
-                const newOptions = [];
-                document.querySelectorAll('.option-row').forEach(row => {
-                    const name = row.querySelector('.opt-name').value;
-                    const price = parseInt(row.querySelector('.opt-price').value);
-                    const cut = parseInt(row.querySelector('.opt-cut').value);
-                    if(name && price && cut) newOptions.push({ name, price, cutStock: cut });
+                const opts = [];
+                document.querySelectorAll('.opt-row').forEach(row => {
+                    opts.push({
+                        name: row.querySelector('.opt-name').value,
+                        price: Number(row.querySelector('.opt-price').value),
+                        cutStock: Number(row.querySelector('.opt-cut').value)
+                    });
                 });
                 return {
                     name: document.getElementById('swal-name').value,
-                    cost: parseFloat(document.getElementById('swal-cost').value) || 0,
-                    stock: parseInt(document.getElementById('swal-stock').value) || 0,
-                    imgSrc: document.getElementById('preview-img').src,
-                    options: newOptions
-                }
+                    cost: Number(document.getElementById('swal-cost').value),
+                    stock: Number(document.getElementById('swal-stock').value),
+                    img: document.getElementById('prev-img').src,
+                    options: opts
+                };
             }
         });
 
-        if (formValues) {
-            if (formValues.options.length === 0) return Swal.fire('ต้องมีวิธีการขายอย่างน้อย 1 แบบ');
-            if (id) Object.assign(p, { ...formValues, img: formValues.imgSrc });
-            else products.push({ id: Date.now(), ...formValues, img: formValues.imgSrc });
-            saveData(); renderStock(); renderPOS();
+        if(form) {
+            if(id) { const idx = products.findIndex(x=>x.id===id); products[idx] = {id, ...form}; }
+            else { products.push({id:Date.now(), ...form}); }
+            saveData(); renderStock(); renderPOS(); renderDashboard();
         }
     }
-    
-    window.addOptionRow = function() {
+
+    window.addOptRow = function() {
         const div = document.createElement('div');
-        div.className = 'input-group mb-2 option-row';
-        div.innerHTML = `<input type="text" class="form-control opt-name" placeholder="ชื่อ"><input type="number" class="form-control opt-price" placeholder="ราคา"><input type="number" class="form-control opt-cut" placeholder="ตัดสต๊อก" value="1"><button class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button>`;
-        document.getElementById('options-container').appendChild(div);
-    }
-    window.previewImage = function() {
-        const file = document.getElementById('swal-file').files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => document.getElementById('preview-img').src = e.target.result;
-            reader.readAsDataURL(file);
-        }
-    }
-    function deleteProduct(id) {
-        Swal.fire({ title: 'ลบสินค้านี้?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'ลบเลย' })
-        .then((r) => { if(r.isConfirmed) { products = products.filter(p => p.id !== id); saveData(); renderStock(); renderPOS(); } });
-    }
+        div.className = 'input-group mb-2 opt-row';
+        div.innerHTML = `<input class="form-control opt-name" value="ปกติ"><input type="number" class="form-control opt-price" placeholder="ราคา"><input type="number" class="form-control opt-cut" value="1"><button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">X</button>`;
+        document.getElementById('opt-container').appendChild(div);
+    };
+
     function renderStock() {
-        const tbody = document.getElementById('stockTable');
-        tbody.innerHTML = '';
+        const tb = document.getElementById('stockTable'); tb.innerHTML = '';
         products.forEach(p => {
-            let optHtml = p.options ? p.options.map(o => `<span class="badge bg-light text-dark border me-1 mb-1">${o.name}: ${o.price}บ.</span>`).join(' ') : '<span class="text-danger">ยังไม่ตั้งราคา</span>';
-            tbody.innerHTML += `<tr><td class="ps-4"><div class="d-flex align-items-center"><img src="${p.img}" class="rounded border" style="width:40px; height:40px; object-fit:cover; margin-right:10px;"><div class="text-truncate" style="max-width: 150px;"><strong>${p.name}</strong></div></div></td><td>${optHtml}</td><td>${p.cost}</td><td class="${p.stock<=5?'text-danger fw-bold':''}">${p.stock}</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-secondary me-1" onclick="openProductModal(${p.id})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            let price = p.options.map(o=>o.price).join('/');
+            tb.innerHTML += `<tr><td class="ps-4"><div class="d-flex align-items-center"><img src="${p.img}" style="width:40px;height:40px;object-fit:cover;" class="rounded border me-2"><span>${p.name}</span></div></td><td>${price}</td><td>${p.cost}</td><td class="${p.stock<=5?'text-danger fw-bold':''}">${p.stock}</td><td class="text-end pe-4"><button class="btn btn-sm btn-light border" onclick="openProductModal(${p.id})"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-sm btn-light border text-danger" onclick="delProd(${p.id})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
         });
     }
+    function delProd(id) { Swal.fire({title:'ลบสินค้า?',icon:'warning',showCancelButton:true,confirmButtonColor:'#d33'}).then(r=>{if(r.isConfirmed){products=products.filter(x=>x.id!==id);saveData();renderStock();renderPOS();}}) }
 
-    // --- Settings & Utils ---
+    // --- 4. HISTORY ---
+    function renderHistory() {
+        const tb = document.getElementById('historyTable'); tb.innerHTML = '';
+        transactions.slice().reverse().slice(0,50).forEach(t => {
+            tb.innerHTML += `<tr><td class="ps-4">${t.date}</td><td>${t.id}</td><td>${t.items.length} รายการ</td><td class="fw-bold text-success">${t.total.toLocaleString()}</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-danger" onclick="delBill('${t.id}')">ลบ</button></td></tr>`;
+        });
+    }
+    async function delBill(id) {
+        const {value:pass} = await Swal.fire({title:'Admin Password', input:'password'});
+        if(pass === 'admin') { 
+            const idx = transactions.findIndex(x=>x.id===id);
+            if(idx > -1) {
+                transactions[idx].items.forEach(i => {
+                    let p = products.find(x=>x.id===i.id);
+                    if(p) p.stock += (i.qty * i.cutStock);
+                });
+                transactions.splice(idx,1); saveData(); renderHistory(); renderDashboard();
+                Swal.fire('ลบแล้ว','คืนสต๊อกเรียบร้อย','success');
+            }
+        } else if(pass) Swal.fire('รหัสผิด','','error');
+    }
+
+    // --- 5. PURCHASE ---
+    function renderPurchaseSection() {
+        const sel = document.getElementById('purchase-product');
+        sel.innerHTML = '<option value="">-- ค้นหาสินค้า --</option>';
+        products.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
+        
+        const tb = document.getElementById('purchaseHistoryTable'); tb.innerHTML = '';
+        purchases.slice().reverse().slice(0,10).forEach((p, i) => {
+            tb.innerHTML += `<tr><td>${p.date.split(' ')[0]}</td><td>${p.productName}</td><td class="text-success">+${p.qty}</td><td>${p.unitCost}</td><td><button class="btn btn-sm btn-light text-danger" onclick="delPurchase(${purchases.length-1-i})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+        });
+    }
+    function updatePurchaseUnitCost() {
+        let id = document.getElementById('purchase-product').value;
+        let p = products.find(x=>x.id==id);
+        if(p) document.getElementById('purchase-cost').value = p.cost;
+    }
+    function confirmPurchase() {
+        let id = Number(document.getElementById('purchase-product').value);
+        let qty = Number(document.getElementById('purchase-qty').value);
+        let cost = Number(document.getElementById('purchase-cost').value);
+        if(!id || !qty) return Swal.fire('ข้อมูลไม่ครบ');
+        
+        let p = products.find(x=>x.id===id);
+        let oldVal = p.stock * p.cost;
+        let newVal = qty * cost;
+        p.stock += qty;
+        p.cost = Number(((oldVal+newVal)/p.stock).toFixed(2));
+        
+        purchases.push({date:new Date().toLocaleString('th-TH'), productName:p.name, productId:p.id, qty, unitCost:cost});
+        saveData(); renderPurchaseSection(); Swal.fire({icon:'success',title:'เพิ่มสต๊อกแล้ว',timer:1000,showConfirmButton:false, confirmButtonColor: '#569e83'});
+        document.getElementById('purchase-qty').value='';
+    }
+    function delPurchase(idx) {
+        const p = purchases[idx];
+        const prod = products.find(x=>x.id===p.productId);
+        if(prod && prod.stock >= p.qty) {
+            prod.stock -= p.qty;
+            purchases.splice(idx,1);
+            saveData(); renderPurchaseSection();
+        } else { Swal.fire('ลบไม่ได้','สินค้าถูกขายไปแล้ว','error'); }
+    }
+
+    // --- 6. SETTINGS ---
     function exportData() {
-        const dataStr = JSON.stringify({ products, transactions, purchases });
-        const link = document.createElement('a');
-        link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        link.download = 'wanyai_pos_v6_backup.json';
-        link.click();
-    }
-    function clearAllData() {
-        Swal.fire({title: 'ล้างข้อมูล?', text: "หายหมดนะ!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33'})
-        .then((r) => { if(r.isConfirmed) { localStorage.clear(); location.reload(); } });
-    }
-    function renderDashboard() {
-        let totalSales=0, netProfit=0, stockVal=0;
-        transactions.forEach(t => { totalSales += t.total; netProfit += t.profit; });
-        products.forEach(p => stockVal += (p.stock * p.cost));
-        document.getElementById('totalSales').innerText = totalSales.toLocaleString() + ' ฿';
-        document.getElementById('netProfit').innerText = netProfit.toLocaleString() + ' ฿';
-        document.getElementById('totalStockValue').innerText = stockVal.toLocaleString() + ' ฿';
-        const ctx = document.getElementById('salesChart').getContext('2d');
-        if(window.salesChartInstance) window.salesChartInstance.destroy();
-        let recent = transactions.slice().reverse().slice(0, 7).reverse();
-        window.salesChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: { labels: recent.map(t => t.date.split(' ')[1]), datasets: [{ label: 'ยอดขาย', data: recent.map(t => t.total), backgroundColor: '#2d6a4f', borderRadius: 5 }] },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-        let list = document.getElementById('lowStockList'); list.innerHTML = '';
-        products.filter(p => p.stock <= 5).forEach(p => list.innerHTML += `<li class="list-group-item d-flex justify-content-between text-danger px-0"><span>${p.name}</span><strong>${p.stock}</strong></li>`);
+        const data = JSON.stringify({ products, transactions, purchases });
+        const blob = new Blob([data], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `wanyai_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
     }
 
+    function importData(input) {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if(data.products && data.transactions) {
+                    Swal.fire({
+                        title: 'ยืนยันกู้คืนข้อมูล?',
+                        text: "ข้อมูลปัจจุบันจะถูกแทนที่ด้วยไฟล์นี้",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'ใช่, กู้คืนเลย',
+                        confirmButtonColor: '#569e83'
+                    }).then((r) => {
+                        if(r.isConfirmed) {
+                            localStorage.setItem('products_v7', JSON.stringify(data.products));
+                            localStorage.setItem('transactions_v7', JSON.stringify(data.transactions));
+                            localStorage.setItem('purchases_v7', JSON.stringify(data.purchases || []));
+                            Swal.fire('สำเร็จ', 'รีโหลดหน้าเว็บเพื่อเริ่มใหม่', 'success').then(() => location.reload());
+                        }
+                    });
+                } else { Swal.fire('ไฟล์ไม่ถูกต้อง', 'โครงสร้างไฟล์ไม่ตรงกับระบบ', 'error'); }
+            } catch(err) { Swal.fire('Error', 'อ่านไฟล์ไม่ได้', 'error'); }
+        };
+        reader.readAsText(file);
+    }
+
+    function clearAllData() {
+        Swal.fire({title:'ล้างข้อมูลทั้งหมด?',text:'ไม่สามารถกู้คืนได้',icon:'warning',showCancelButton:true,confirmButtonColor:'#d33'}).then(r=>{
+            if(r.isConfirmed) { localStorage.clear(); location.reload(); }
+        });
+    }
+
+    // --- INIT ---
     renderDashboard();
 </script>
 </body>
 </html>
-
