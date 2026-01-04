@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wan Yai Pet Mart POS (Final)</title>
+    <title>Wan Yai Pet Mart POS (Pro V.9)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -17,8 +17,8 @@
             --primary-color: #569e83;  
             --primary-dark: #3d7a62;   
             --secondary-color: #4a6fa5; 
-            --accent-color: #f4a261;   
-            --bg-color: #fdfbf7;       
+            --accent-color: #f4a261;    
+            --bg-color: #fdfbf7;        
             --card-shadow: 0 4px 20px rgba(86, 158, 131, 0.15);
         }
         
@@ -26,7 +26,6 @@
             background-color: var(--bg-color); 
             font-family: 'Sarabun', sans-serif; 
             overflow-x: hidden;
-            /* Pattern รอยเท้าแมว */
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 30c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm0-8c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm-6 5c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm12 0c-1.5 0-2.8-1.2-2.8-2.8 0-1.5 1.2-2.8 2.8-2.8 1.5 0 2.8 1.2 2.8 2.8 0 1.5-1.2 2.8-2.8 2.8zm-6 12c-3.3 0-6-2.7-6-6 0-1 .3-1.9.8-2.7.5-.7 1.2-1.2 2-1.5 1-.4 2.1-.6 3.2-.6 1.1 0 2.2.2 3.2.6.8.3 1.5.8 2 1.5.5.8.8 1.7.8 2.7 0 3.3-2.7 6-6 6z' fill='%23569e83' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E");
         }
 
@@ -109,10 +108,11 @@
         <a class="nav-link" onclick="showSection('products')"><i class="fa-solid fa-boxes-stacked"></i> สินค้า/สต๊อก</a>
         <a class="nav-link" onclick="showSection('history')"><i class="fa-solid fa-clock-rotate-left"></i> ประวัติขาย</a>
         <a class="nav-link" onclick="showSection('purchase')"><i class="fa-solid fa-truck-ramp-box"></i> รับของเข้า</a>
+        <a class="nav-link" onclick="showSection('accounting')"><i class="fa-solid fa-calculator"></i> บัญชี & กำไร</a>
     </nav>
 
     <div class="p-3 border-top text-center">
-        <small class="text-muted d-block mb-2">Wan Yai Pet Mart V.8.0 Final</small>
+        <small class="text-muted d-block mb-2">Wan Yai Pet Mart V.9.0 Pro</small>
         <a class="btn btn-sm btn-outline-secondary w-100" onclick="showSection('settings')"><i class="fa-solid fa-gear"></i> ตั้งค่าระบบ</a>
     </div>
 </div>
@@ -152,7 +152,7 @@
                 <div class="card card-custom p-3 h-100 border-start border-0">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <small class="text-muted fw-bold">กำไรขั้นต้น (Est.)</small>
+                            <small class="text-muted fw-bold">กำไรขั้นต้น (สินค้า)</small>
                             <h3 id="netProfit" class="fw-bold text-success my-1">0 ฿</h3>
                         </div>
                         <div class="text-success bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
@@ -254,7 +254,7 @@
                             <h2 class="text-success fw-bold mb-0" id="cartTotal">0 ฿</h2>
                         </div>
                         <button class="btn w-100 py-3 fw-bold fs-5 shadow-sm mb-2 text-white" style="background-color: var(--accent-color); border:none;" onclick="checkout()">
-                            <i class="fa-regular fa-credit-card"></i> รับเงิน (F2)
+                            <i class="fa-solid fa-cash-register"></i> รับเงิน (F2)
                         </button>
                         <button class="btn btn-outline-secondary w-100 btn-sm" onclick="clearCart()">ล้างรายการ</button>
                     </div>
@@ -288,7 +288,7 @@
         <div class="card card-custom p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light"><tr><th class="ps-4">วันที่/เวลา</th><th>เลขบิล</th><th>รายการ</th><th>ยอดรวม</th><th class="text-end pe-4">ตัวเลือก</th></tr></thead>
+                    <thead class="bg-light"><tr><th class="ps-4">วันที่/เวลา</th><th>ช่องทาง</th><th>เลขบิล</th><th>รายการ</th><th>ยอดรวม</th><th class="text-end pe-4">ตัวเลือก</th></tr></thead>
                     <tbody id="historyTable"></tbody>
                 </table>
             </div>
@@ -324,6 +324,81 @@
                             <thead class="table-light"><tr><th>วันที่</th><th>สินค้า</th><th>จำนวน</th><th>ทุน/หน่วย</th><th>ลบ</th></tr></thead>
                             <tbody id="purchaseHistoryTable"></tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="accounting" class="section" style="display:none;">
+        <div class="section-header">
+            <h4 class="fw-bold text-dark">บัญชี & กำไรขาดทุน (มืออาชีพ)</h4>
+            <small class="text-muted">คำนวนตามหลักบัญชี (Revenue - COGS - Expenses)</small>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card card-custom p-4 mb-4">
+                    <h6 class="fw-bold text-danger mb-3"><i class="fa-solid fa-circle-minus"></i> บันทึกรายจ่าย</h6>
+                    <div class="mb-2">
+                        <label class="small text-muted">ชื่อรายการ (เช่น ค่าน้ำ, ค่าแรง, ค่าเช่า)</label>
+                        <input type="text" id="expenseTitle" class="form-control" placeholder="...">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="small text-muted">จำนวนเงิน</label>
+                            <input type="number" id="expenseAmount" class="form-control" placeholder="0.00">
+                        </div>
+                        <div class="col">
+                            <label class="small text-muted">หมวดหมู่</label>
+                            <select id="expenseCat" class="form-select">
+                                <option>สาธารณูปโภค</option>
+                                <option>เงินเดือน</option>
+                                <option>ค่าเช่า</option>
+                                <option>อุปกรณ์สิ้นเปลือง</option>
+                                <option>อื่นๆ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger w-100 shadow-sm" onclick="addExpense()">บันทึกรายจ่าย</button>
+                </div>
+
+                <div class="card card-custom p-0" style="max-height: 400px; overflow-y:auto;">
+                    <div class="p-3 border-bottom bg-light"><h6 class="mb-0 fw-bold">รายจ่ายล่าสุด</h6></div>
+                    <ul class="list-group list-group-flush" id="expenseList"></ul>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card card-custom p-0 h-100 border-0 shadow-lg">
+                    <div class="p-4 bg-white">
+                        <h5 class="fw-bold text-center text-decoration-underline mb-4">งบกำไรขาดทุน (Profit & Loss)</h5>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">รายได้จากการขาย (Revenue)</span>
+                            <span class="fw-bold fs-5" id="pl-revenue">0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                            <span class="text-danger small"><i class="fa-solid fa-minus"></i> ต้นทุนสินค้าขาย (COGS)</span>
+                            <span class="text-danger" id="pl-cogs">-0.00</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4 p-2 bg-light rounded">
+                            <span class="fw-bold text-primary">กำไรขั้นต้น (Gross Profit)</span>
+                            <span class="fw-bold fs-4 text-primary" id="pl-gross">0.00</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                            <span class="text-danger small"><i class="fa-solid fa-minus"></i> รวมรายจ่ายดำเนินงาน (Expenses)</span>
+                            <span class="text-danger fw-bold" id="pl-expenses">-0.00</span>
+                        </div>
+
+                        <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #569e83 0%, #3d7a62 100%); color: white;">
+                            <small class="opacity-75">กำไรสุทธิ (Net Profit)</small>
+                            <h1 class="fw-bold mb-0 display-4" id="pl-net">0.00</h1>
+                            <small class="opacity-75" id="pl-status">สถานะ: ปกติ</small>
+                        </div>
+                        <div class="text-end mt-2"><small class="text-muted">*คำนวนจากข้อมูลทั้งหมดในระบบ</small></div>
                     </div>
                 </div>
             </div>
@@ -367,9 +442,10 @@
 
 <script>
     // --- Global Data & State ---
-    let products = JSON.parse(localStorage.getItem('products_v7')) || [];
-    let transactions = JSON.parse(localStorage.getItem('transactions_v7')) || [];
-    let purchases = JSON.parse(localStorage.getItem('purchases_v7')) || [];
+    let products = JSON.parse(localStorage.getItem('products_v9')) || [];
+    let transactions = JSON.parse(localStorage.getItem('transactions_v9')) || [];
+    let purchases = JSON.parse(localStorage.getItem('purchases_v9')) || [];
+    let expenses = JSON.parse(localStorage.getItem('expenses_v9')) || []; // NEW
     let cart = [];
     let topProductChartInstance = null;
     let hourlyChartInstance = null;
@@ -388,31 +464,25 @@
         return canvas.toDataURL();
     }
 
-    // --- IMAGE RESIZE & BASE64 (FIX for Disappearing Images) ---
+    // --- IMAGE RESIZE & BASE64 ---
     function handleImageUpload(input) {
         if (input.files && input.files[0]) {
             const file = input.files[0];
             const reader = new FileReader();
-            
             reader.onload = function(e) {
                 const img = new Image();
                 img.src = e.target.result;
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    // Resize to 300px max
                     const maxWidth = 300;
                     const scaleFactor = maxWidth / img.width;
                     const newWidth = maxWidth;
                     const newHeight = img.height * scaleFactor;
-
                     canvas.width = newWidth;
                     canvas.height = newHeight;
                     ctx.drawImage(img, 0, 0, newWidth, newHeight);
-                    
-                    // Convert to persistent Base64 string
-                    const dataURI = canvas.toDataURL('image/jpeg', 0.7);
-                    document.getElementById('prev-img').src = dataURI;
+                    document.getElementById('prev-img').src = canvas.toDataURL('image/jpeg', 0.7);
                 };
             };
             reader.readAsDataURL(file);
@@ -434,18 +504,20 @@
         if(id === 'products') { links[2].classList.add('active'); renderStock(); }
         if(id === 'history') { links[3].classList.add('active'); renderHistory(); }
         if(id === 'purchase') { links[4].classList.add('active'); renderPurchaseSection(); }
-        if(id === 'settings') links[5].classList.add('active');
+        if(id === 'accounting') { links[5].classList.add('active'); renderAccounting(); } // NEW
+        if(id === 'settings') links[6].classList.add('active'); // Shifted index
         
         if(window.innerWidth < 768) toggleSidebar();
         if(id === 'dashboard') renderDashboard();
     }
     function saveData() {
-        localStorage.setItem('products_v7', JSON.stringify(products));
-        localStorage.setItem('transactions_v7', JSON.stringify(transactions));
-        localStorage.setItem('purchases_v7', JSON.stringify(purchases));
+        localStorage.setItem('products_v9', JSON.stringify(products));
+        localStorage.setItem('transactions_v9', JSON.stringify(transactions));
+        localStorage.setItem('purchases_v9', JSON.stringify(purchases));
+        localStorage.setItem('expenses_v9', JSON.stringify(expenses)); // NEW
     }
 
-    // --- 1. DASHBOARD LOGIC ---
+    // --- 1. DASHBOARD LOGIC (Unchanged visual) ---
     function renderDashboard() {
         const today = new Date();
         const dateStr = today.toLocaleDateString('th-TH');
@@ -535,7 +607,7 @@
         if(lowStock.length===0) list.innerHTML = '<li class="list-group-item text-center text-success border-0"><i class="fa-solid fa-check-circle"></i> สต๊อกปกติ</li>';
     }
 
-    // --- 2. POS SYSTEM ---
+    // --- 2. POS SYSTEM (UPDATED: Checkout) ---
     function renderPOS() {
         const grid = document.getElementById('productGrid');
         const term = document.getElementById('searchPos').value.toLowerCase();
@@ -613,20 +685,29 @@
         document.getElementById('cartCount').innerText = count;
     }
 
-    // --- CHECKOUT & BILL ---
+    // --- CHECKOUT with PAYMENT METHOD (NEW) ---
     function checkout() {
         if(cart.length === 0) return;
         const total = cart.reduce((sum, c) => sum + (c.price * c.qty), 0);
+        
         Swal.fire({
-            title: 'ยอดรับเงิน',
-            html: `<h1 class="text-success fw-bold">${total.toLocaleString()}</h1>`,
-            showCancelButton: true, confirmButtonText: '✅ รับเงิน', confirmButtonColor: '#f4a261', cancelButtonText: 'ยกเลิก'
+            title: 'เลือกช่องทางชำระเงิน',
+            html: `<h3 class="text-dark fw-bold mb-3">${total.toLocaleString()} บาท</h3>`,
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa-solid fa-money-bill-wave"></i> เงินสด',
+            denyButtonText: '<i class="fa-solid fa-qrcode"></i> โอน/สแกน',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#28a745',
+            denyButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d'
         }).then((res) => {
-            if(res.isConfirmed) processTransaction(total);
+            if(res.isConfirmed) processTransaction(total, 'cash');
+            else if(res.isDenied) processTransaction(total, 'transfer');
         });
     }
 
-    function processTransaction(saleTotal) {
+    function processTransaction(saleTotal, paymentMethod) {
         let costTotal = 0;
         cart.forEach(c => {
             let p = products.find(x => x.id === c.id);
@@ -643,14 +724,14 @@
             date: new Date().toLocaleString('th-TH'),
             items: [...cart],
             total: saleTotal,
-            profit: saleTotal - costTotal
+            profit: saleTotal - costTotal,
+            paymentMethod: paymentMethod // NEW
         };
         
         transactions.push(tx);
         saveData();
         cart = []; renderCart(); renderPOS(); renderDashboard();
         
-        // Show Bill Immediately
         openBillModal(tx.id);
     }
 
@@ -662,6 +743,8 @@
         tx.items.forEach(i => {
             itemsHtml += `<div class="d-flex justify-content-between mb-1"><span>${i.name} x${i.qty}</span><span>${(i.price * i.qty).toLocaleString()}</span></div>`;
         });
+        
+        const payTxt = tx.paymentMethod === 'transfer' ? 'โอน/สแกน' : 'เงินสด';
 
         const slipHtml = `
             <div class="bill-slip">
@@ -673,6 +756,7 @@
                 </div>
                 <div class="mb-3 border-bottom border-dark pb-2">${itemsHtml}</div>
                 <div class="d-flex justify-content-between fw-bold fs-5"><span>ยอดรวม</span><span>${tx.total.toLocaleString()} ฿</span></div>
+                <div class="d-flex justify-content-between text-muted small mt-1"><span>ชำระโดย</span><span>${payTxt}</span></div>
             </div>
         `;
 
@@ -768,11 +852,29 @@
     }
     function delProd(id) { Swal.fire({title:'ลบสินค้า?',icon:'warning',showCancelButton:true,confirmButtonColor:'#d33'}).then(r=>{if(r.isConfirmed){products=products.filter(x=>x.id!==id);saveData();renderStock();renderPOS();}}) }
 
-    // --- 4. HISTORY ---
+    // --- 4. HISTORY (UPDATED: Show Payment Type) ---
     function renderHistory() {
         const tb = document.getElementById('historyTable'); tb.innerHTML = '';
         transactions.slice().reverse().slice(0,50).forEach(t => {
-            tb.innerHTML += `<tr><td class="ps-4">${t.date}</td><td>${t.id}</td><td>${t.items.length} รายการ</td><td class="fw-bold text-success">${t.total.toLocaleString()}</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary me-1" onclick="openBillModal('${t.id}')"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delBill('${t.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            // Check payment method
+            let payIcon = t.paymentMethod === 'transfer' 
+                ? '<i class="fa-solid fa-qrcode text-primary" title="โอน/สแกน"></i>' 
+                : '<i class="fa-solid fa-money-bill text-success" title="เงินสด"></i>';
+            // Default backward compatibility
+            if(!t.paymentMethod) payIcon = '<i class="fa-solid fa-circle-question text-muted"></i>';
+
+            tb.innerHTML += `
+            <tr>
+                <td class="ps-4">${t.date}</td>
+                <td>${payIcon}</td>
+                <td>${t.id}</td>
+                <td>${t.items.length} รายการ</td>
+                <td class="fw-bold text-success">${t.total.toLocaleString()}</td>
+                <td class="text-end pe-4">
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="openBillModal('${t.id}')"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="delBill('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>`;
         });
     }
     async function delBill(id) {
@@ -831,13 +933,97 @@
         } else { Swal.fire('ลบไม่ได้','สินค้าถูกขายไปแล้ว','error'); }
     }
 
-    // --- 6. SETTINGS ---
+    // --- 6. ACCOUNTING & EXPENSES (NEW) ---
+    function renderAccounting() {
+        // Calculate Totals
+        let totalRevenue = 0;
+        let totalCOGS = 0;
+        
+        // Loop transactions for Revenue & COGS
+        transactions.forEach(t => {
+            totalRevenue += t.total;
+            // Calculate COGS per transaction
+            t.items.forEach(i => {
+                const p = products.find(x => x.id === i.id);
+                // If product deleted, use estimated profit
+                if(p) totalCOGS += (p.cost * i.qty * i.cutStock);
+                else totalCOGS += (t.total - t.profit); // Fallback to saved profit gap
+            });
+        });
+
+        // Sum Expenses
+        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+        // Calc
+        const grossProfit = totalRevenue - totalCOGS;
+        const netProfit = grossProfit - totalExpenses;
+
+        // Render Summary
+        document.getElementById('pl-revenue').innerText = totalRevenue.toLocaleString(undefined, {minimumFractionDigits:2});
+        document.getElementById('pl-cogs').innerText = '-' + totalCOGS.toLocaleString(undefined, {minimumFractionDigits:2});
+        document.getElementById('pl-gross').innerText = grossProfit.toLocaleString(undefined, {minimumFractionDigits:2});
+        document.getElementById('pl-expenses').innerText = '-' + totalExpenses.toLocaleString(undefined, {minimumFractionDigits:2});
+        document.getElementById('pl-net').innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits:2});
+        
+        const statusEl = document.getElementById('pl-status');
+        if(netProfit >= 0) {
+            statusEl.innerText = "สถานะ: กำไร (Profit)";
+            statusEl.classList.remove('text-danger');
+        } else {
+            statusEl.innerText = "สถานะ: ขาดทุน (Loss)";
+            statusEl.classList.add('text-danger');
+        }
+
+        // Render List
+        const list = document.getElementById('expenseList');
+        list.innerHTML = '';
+        expenses.slice().reverse().forEach((e, i) => {
+            list.innerHTML += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="fw-bold d-block">${e.title}</span>
+                    <small class="text-muted">${e.date} • ${e.category}</small>
+                </div>
+                <div class="text-end">
+                    <span class="text-danger fw-bold">-${e.amount.toLocaleString()}</span>
+                    <i class="fa-solid fa-trash text-muted ms-2" style="cursor:pointer" onclick="delExpense(${expenses.length-1-i})"></i>
+                </div>
+            </li>`;
+        });
+    }
+
+    function addExpense() {
+        const title = document.getElementById('expenseTitle').value;
+        const amount = Number(document.getElementById('expenseAmount').value);
+        const cat = document.getElementById('expenseCat').value;
+        
+        if(!title || amount <= 0) return Swal.fire('ข้อมูลไม่ถูกต้อง');
+
+        expenses.push({
+            date: new Date().toLocaleDateString('th-TH'),
+            title, amount, category: cat
+        });
+        
+        saveData();
+        // Clear Inputs
+        document.getElementById('expenseTitle').value = '';
+        document.getElementById('expenseAmount').value = '';
+        renderAccounting();
+    }
+
+    function delExpense(idx) {
+        expenses.splice(idx, 1);
+        saveData();
+        renderAccounting();
+    }
+
+    // --- 7. EXPORT/IMPORT ---
     function exportData() {
-        const data = JSON.stringify({ products, transactions, purchases });
+        const data = JSON.stringify({ products, transactions, purchases, expenses }); // Added expenses
         const blob = new Blob([data], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = `wanyai_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.href = url; a.download = `wanyai_backup_v9_${new Date().toISOString().slice(0,10)}.json`;
         a.click();
     }
 
@@ -854,9 +1040,10 @@
                         icon: 'warning', showCancelButton: true, confirmButtonText: 'ใช่, กู้คืนเลย', confirmButtonColor: '#569e83'
                     }).then((r) => {
                         if(r.isConfirmed) {
-                            localStorage.setItem('products_v7', JSON.stringify(data.products));
-                            localStorage.setItem('transactions_v7', JSON.stringify(data.transactions));
-                            localStorage.setItem('purchases_v7', JSON.stringify(data.purchases || []));
+                            localStorage.setItem('products_v9', JSON.stringify(data.products));
+                            localStorage.setItem('transactions_v9', JSON.stringify(data.transactions));
+                            localStorage.setItem('purchases_v9', JSON.stringify(data.purchases || []));
+                            localStorage.setItem('expenses_v9', JSON.stringify(data.expenses || []));
                             Swal.fire('สำเร็จ', 'รีโหลดหน้าเว็บเพื่อเริ่มใหม่', 'success').then(() => location.reload());
                         }
                     });
