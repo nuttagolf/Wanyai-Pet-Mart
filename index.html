@@ -68,36 +68,126 @@
             </div>
 
             <div id="dashboard" class="section">
-                <h3 class="mb-4 text-secondary"><i class="fa-solid fa-chart-simple"></i> ภาพรวมวันนี้</h3>
-                <div class="row g-3">
-                    <div class="col-md-4"><div class="card card-custom p-4 border-start border-5 border-primary">
-                        <small class="text-muted text-uppercase fw-bold">ยอดขายรวม</small>
-                        <h2 id="totalSales" class="fw-bold text-primary mb-0">0 ฿</h2>
-                    </div></div>
-                    <div class="col-md-4"><div class="card card-custom p-4 border-start border-5 border-success">
-                        <small class="text-muted text-uppercase fw-bold">กำไรสุทธิ</small>
-                        <h2 id="netProfit" class="fw-bold text-success mb-0">0 ฿</h2>
-                    </div></div>
-                    <div class="col-md-4"><div class="card card-custom p-4 border-start border-5 border-warning">
-                        <small class="text-muted text-uppercase fw-bold">มูลค่าสต๊อกคงเหลือ</small>
-                        <h2 id="totalStockValue" class="fw-bold text-warning mb-0">0 ฿</h2>
-                    </div></div>
-                </div>
-                <div class="row mt-4">
-                    <div class="col-md-8">
-                        <div class="card card-custom p-3 h-100">
-                            <h5 class="mb-3">📈 สถิติยอดขายล่าสุด</h5>
-                            <canvas id="salesChart" style="max-height: 300px;"></canvas>
-                        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-0 text-secondary fw-bold"><i class="fa-solid fa-chart-line"></i> Dashboard</h3>
+            <small class="text-muted">ภาพรวมธุรกิจประจำวันที่ <span id="dashDate"></span></small>
+        </div>
+        <div>
+             <button class="btn btn-sm btn-outline-secondary" onclick="renderDashboard()"><i class="fa-solid fa-rotate"></i> รีเฟรช</button>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card card-custom p-3 border-start border-4 border-primary h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">ยอดขายวันนี้</small>
+                        <h3 id="totalSales" class="fw-bold text-primary mb-0 mt-1">0 ฿</h3>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card card-custom p-3 h-100">
-                            <h5 class="text-danger mb-3"><i class="fa-solid fa-triangle-exclamation"></i> สินค้าใกล้หมด</h5>
-                            <ul id="lowStockList" class="list-group list-group-flush small"></ul>
-                        </div>
+                    <div class="bg-primary bg-opacity-10 p-2 rounded text-primary">
+                        <i class="fa-solid fa-wallet fa-lg"></i>
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom p-3 border-start border-4 border-success h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">กำไรสุทธิ (Margin)</small>
+                        <h3 id="netProfit" class="fw-bold text-success mb-0 mt-1">0 ฿</h3>
+                        <small id="profitMargin" class="text-success fw-bold" style="font-size: 0.8rem;">(0%)</small>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-2 rounded text-success">
+                        <i class="fa-solid fa-sack-dollar fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom p-3 border-start border-4 border-info h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">จำนวนบิล / เฉลี่ยต่อบิล</small>
+                        <h3 id="totalBills" class="fw-bold text-info mb-0 mt-1">0</h3>
+                        <small id="avgBill" class="text-muted" style="font-size: 0.8rem;">Avg: 0 ฿</small>
+                    </div>
+                    <div class="bg-info bg-opacity-10 p-2 rounded text-info">
+                        <i class="fa-solid fa-receipt fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom p-3 border-start border-4 border-warning h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">มูลค่าสต๊อกคงเหลือ</small>
+                        <h3 id="totalStockValue" class="fw-bold text-warning mb-0 mt-1">0 ฿</h3>
+                        <small class="text-muted" style="font-size: 0.8rem;">ต้นทุนจม</small>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 p-2 rounded text-warning">
+                        <i class="fa-solid fa-boxes-stacked fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card card-custom p-3 h-100">
+                <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-crown text-warning"></i> 5 อันดับสินค้าขายดี (จำนวน)</h6>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="topProductChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card card-custom p-3 h-100">
+                <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-clock text-primary"></i> ช่วงเวลาการขาย (Sales Traffic)</h6>
+                <div style="height: 250px;">
+                    <canvas id="hourlySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-8">
+            <div class="card card-custom p-0 h-100">
+                <div class="p-3 border-bottom bg-light">
+                    <h6 class="fw-bold mb-0 text-secondary">📦 ธุรกรรมล่าสุด (วันนี้)</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-center small">
+                        <thead class="table-light text-muted">
+                            <tr>
+                                <th>เวลา</th>
+                                <th>เลขบิล</th>
+                                <th>สินค้า (รายการแรก)</th>
+                                <th>ยอดเงิน</th>
+                                <th>กำไร</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTxTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-custom p-0 h-100">
+                 <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-danger">⚠️ เตือนสต๊อกต่ำ</h6>
+                    <span class="badge bg-danger rounded-pill" id="lowStockCount">0</span>
+                </div>
+                <ul id="lowStockList" class="list-group list-group-flush small" style="max-height: 300px; overflow-y: auto;"></ul>
+            </div>
+        </div>
+    </div>
+</div>
 
             <div id="pos" class="section" style="display:none;">
                 <div class="row h-100">
@@ -674,3 +764,4 @@
 </script>
 </body>
 </html>
+
