@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wan Yai Pet Mart POS (V.9.6 Best Seller Logic Fixed)</title>
+    <title>Wan Yai Pet Mart POS (V.9.7.1 Dropship Fixed)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
             --secondary-color: #E8AC56; 
             --secondary-dark: #d6953e;
             --bg-color: #F9F7F0;        
-            --text-dark: #4A4A4A;       
+            --text-dark: #4A4A4A;        
             --card-shadow: 0 4px 15px rgba(98, 177, 148, 0.15);
             --border-radius-btn: 50px;  
             --border-radius-card: 20px; 
@@ -139,7 +139,7 @@
     </nav>
 
     <div class="p-3 border-top text-center">
-        <small class="text-muted d-block mb-2">Wan Yai Pet Mart V.9.6</small>
+        <small class="text-muted d-block mb-2">Wan Yai Pet Mart V.9.7.1</small>
         <a class="btn btn-sm btn-outline-secondary w-100" onclick="showSection('settings')" style="border-radius: 20px;"><i class="fa-solid fa-gear"></i> ตั้งค่าระบบ</a>
     </div>
 </div>
@@ -535,7 +535,7 @@
         localStorage.setItem('expenses_v9', JSON.stringify(expenses));
     }
 
-    // --- DASHBOARD (FIXED BEST SELLER LOGIC) ---
+    // --- DASHBOARD (Updated with Dropship Logic) ---
     function renderDashboard() {
         const today = new Date();
         document.getElementById('dashDate').innerText = today.toLocaleDateString('th-TH');
@@ -555,7 +555,17 @@
         });
 
         let totalSales = 0, totalProfit = 0;
-        filteredTxs.forEach(t => { totalSales += t.total; totalProfit += t.profit; });
+        let shopSales = 0, dropshipSales = 0; // Separate sales vars
+
+        filteredTxs.forEach(t => { 
+            totalSales += t.total; 
+            totalProfit += t.profit; 
+            if (t.isDropship) {
+                dropshipSales += t.total;
+            } else {
+                shopSales += t.total;
+            }
+        });
         
         let stockVal = 0, lowStock = [];
         products.forEach(p => { 
@@ -563,7 +573,14 @@
             if(p.stock <= 5) lowStock.push(p);
         });
 
-        document.getElementById('totalSales').innerText = totalSales.toLocaleString() + ' ฿';
+        // Updated HTML for Total Sales
+        document.getElementById('totalSales').innerHTML = `
+            ${totalSales.toLocaleString()} ฿
+            <div style="font-size: 10px; margin-top: 5px;" class="text-muted">
+                หน้าร้าน: ${shopSales.toLocaleString()} | Dropship: ${dropshipSales.toLocaleString()}
+            </div>
+        `;
+
         document.getElementById('netProfit').innerText = totalProfit.toLocaleString() + ' ฿';
         document.getElementById('totalBills').innerText = filteredTxs.length;
         document.getElementById('profitMargin').innerText = totalSales > 0 ? ((totalProfit/totalSales)*100).toFixed(1) + '%' : '0%';
@@ -611,12 +628,12 @@
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} } }
         });
 
-        // --- 3. Top Products (FIXED: Sum of Qty) ---
+        // Top Products
         let productMap = {};
         filteredTxs.forEach(t => {
             t.items.forEach(i => {
                 let key = i.name;
-                let qty = Number(i.qty) || 0; // Force Number
+                let qty = Number(i.qty) || 0; 
                 if(!productMap[key]) productMap[key] = 0;
                 productMap[key] += qty;
             });
@@ -642,7 +659,7 @@
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {position:'right', labels:{boxWidth:12}} } }
         });
 
-        // 4. Recent Tx
+        // Recent Tx
         const recentBody = document.getElementById('recentTxTable');
         recentBody.innerHTML = '';
         filteredTxs.slice().reverse().slice(0, 10).forEach(t => {
@@ -651,7 +668,7 @@
         });
         if(filteredTxs.length === 0) recentBody.innerHTML = '<tr><td colspan="5" class="text-muted py-4">ไม่พบข้อมูลในช่วงเวลานี้</td></tr>';
 
-        // 5. Low Stock
+        // Low Stock
         const list = document.getElementById('lowStockList');
         list.innerHTML = '';
         lowStock.forEach(p => {
@@ -701,22 +718,51 @@
         Swal.fire({ title: p.name, html: html, showConfirmButton: false, confirmButtonColor: '#62B194' });
     }
 
+    // --- Custom Sale (with Cost Input) ---
     async function openCustomSale(id) {
-        Swal.close(); const p = products.find(x => x.id === id);
+        Swal.close(); 
+        const p = products.find(x => x.id === id);
         const { value: formValues } = await Swal.fire({
             title: 'ขายแบบกำหนดเอง',
-            html: `<div class="mb-2 text-start text-muted small">สินค้า: <b>${p.name}</b> (คงเหลือ ${p.stock})</div><div class="row g-2"><div class="col-6"><label class="small fw-bold">ราคา</label><input id="swal-custom-price" class="form-control text-center" type="number" placeholder="0" style="border-radius:15px;"></div><div class="col-6"><label class="small fw-bold">จำนวน</label><input id="swal-custom-qty" class="form-control text-center" type="number" value="1" style="border-radius:15px;"></div></div>`,
+            html: `
+                <div class="mb-2 text-start text-muted small">สินค้า: <b>${p.name}</b> (คงเหลือ ${p.stock})</div>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <label class="small fw-bold">ราคาขาย</label>
+                        <input id="swal-custom-price" class="form-control text-center" type="number" placeholder="0" style="border-radius:15px;">
+                    </div>
+                    <div class="col-4">
+                        <label class="small fw-bold text-muted">ต้นทุน (ถ้ามี)</label>
+                        <input id="swal-custom-cost" class="form-control text-center" type="number" value="${p.cost}" style="border-radius:15px;">
+                    </div>
+                    <div class="col-4">
+                        <label class="small fw-bold">จำนวน</label>
+                        <input id="swal-custom-qty" class="form-control text-center" type="number" value="1" style="border-radius:15px;">
+                    </div>
+                </div>`,
             focusConfirm: false, showCancelButton: true, confirmButtonText: 'เพิ่ม', confirmButtonColor: '#E8AC56',
-            preConfirm: () => [document.getElementById('swal-custom-price').value, document.getElementById('swal-custom-qty').value]
+            preConfirm: () => [
+                document.getElementById('swal-custom-price').value, 
+                document.getElementById('swal-custom-qty').value,
+                document.getElementById('swal-custom-cost').value
+            ]
         });
+
         if (formValues) {
-            const price = Number(formValues[0]); const qty = Number(formValues[1]);
+            const price = Number(formValues[0]); 
+            const qty = Number(formValues[1]);
+            const cost = Number(formValues[2]);
+
             if(!price || !qty || qty <= 0) return Swal.fire('ข้อมูลไม่ถูกต้อง', '', 'error');
-            const currentInCart = cart.reduce((acc, c) => (c.id === id ? acc + (c.qty * (c.cutStock||1)) : acc), 0);
-            if(currentInCart + qty > p.stock) return Swal.fire({icon: 'warning', title: 'สินค้าไม่พอ'});
+            
+            // Logic: Do not check stock limit here, allowing for potential dropship later
+            
             const exist = cart.find(c => c.id === id && c.optionName === 'กำหนดเอง' && c.price === price);
-            if(exist) exist.qty += qty; else cart.push({ id: p.id, name: p.name, optionName: 'กำหนดเอง', price: price, cutStock: 1, qty: qty });
-            renderCart(); Swal.fire({icon: 'success', title: 'เพิ่มแล้ว', timer: 1000, showConfirmButton: false});
+            if(exist) { exist.qty += qty; } 
+            else { cart.push({ id: p.id, name: p.name, optionName: 'กำหนดเอง', price: price, cutStock: 1, qty: qty, cost: cost }); }
+            
+            renderCart(); 
+            Swal.fire({icon: 'success', title: 'เพิ่มแล้ว', timer: 1000, showConfirmButton: false});
         }
     }
 
@@ -742,27 +788,71 @@
         document.getElementById('cartCount').innerText = count;
     }
 
+    // --- Updated Checkout (Fixed Bug: Button not clickable if unchecked) ---
     function checkout() {
         if(cart.length === 0) return;
         const total = cart.reduce((sum, c) => sum + (c.price * c.qty), 0);
+        
         Swal.fire({
-            title: 'เลือกช่องทางชำระเงิน', html: `<h3 class="text-dark fw-bold mb-3">${total.toLocaleString()} บาท</h3>`,
+            title: 'เลือกช่องทางชำระเงิน', 
+            html: `
+                <h3 class="text-dark fw-bold mb-3">${total.toLocaleString()} บาท</h3>
+                <div class="form-check d-inline-block text-start p-2 border rounded bg-light">
+                    <input class="form-check-input" type="checkbox" id="isDropshipBill">
+                    <label class="form-check-label text-muted" for="isDropshipBill">
+                        📦 สินค้านี้เป็น Dropship / Pre-order<br>
+                        <small>(ไม่ตัดสต๊อกร้าน + แยกยอดขายให้)</small>
+                    </label>
+                </div>
+            `,
             showDenyButton: true, showCancelButton: true, confirmButtonText: 'เงินสด', denyButtonText: 'โอน/สแกน', cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#62B194', denyButtonColor: '#4a6fa5'
+            confirmButtonColor: '#62B194', denyButtonColor: '#4a6fa5',
+            // Return Object to ensure truthy value so Modal closes
+            preConfirm: () => ({ isDropship: document.getElementById('isDropshipBill').checked }),
+            preDeny: () => ({ isDropship: document.getElementById('isDropshipBill').checked })
         }).then((res) => {
-            if(res.isConfirmed) processTransaction(total, 'cash');
-            else if(res.isDenied) processTransaction(total, 'transfer');
+            // Extract value safely from the object
+            const isDropship = (res.value && res.value.isDropship) || false;
+            
+            if(res.isConfirmed) processTransaction(total, 'cash', isDropship);
+            else if(res.isDenied) processTransaction(total, 'transfer', isDropship);
         });
     }
 
-    function processTransaction(saleTotal, paymentMethod) {
+    // --- Updated Process Transaction (Handle Stock Logic) ---
+    function processTransaction(saleTotal, paymentMethod, isDropship = false) {
         let costTotal = 0;
+        
         cart.forEach(c => {
             let p = products.find(x => x.id === c.id);
-            if(p) { let cut = c.cutStock * c.qty; p.stock -= cut; costTotal += (p.cost * cut); }
+            if(p) { 
+                if (!isDropship) {
+                    let cut = c.cutStock * c.qty; 
+                    p.stock -= cut; 
+                }
+                // Use Custom Cost if available, else average cost
+                let unitCost = (c.cost !== undefined) ? c.cost : p.cost;
+                costTotal += (unitCost * c.qty); 
+            }
         });
-        const tx = { id: Date.now().toString().slice(-6), timestamp: Date.now(), date: new Date().toLocaleString('th-TH'), items: [...cart], total: saleTotal, profit: saleTotal - costTotal, paymentMethod: paymentMethod };
-        transactions.push(tx); saveData(); cart = []; renderCart(); renderPOS(); renderDashboard();
+
+        const tx = { 
+            id: Date.now().toString().slice(-6), 
+            timestamp: Date.now(), 
+            date: new Date().toLocaleString('th-TH'), 
+            items: [...cart], 
+            total: saleTotal, 
+            profit: saleTotal - costTotal, 
+            paymentMethod: paymentMethod,
+            isDropship: isDropship
+        };
+        
+        transactions.push(tx); 
+        saveData(); 
+        cart = []; 
+        renderCart(); 
+        renderPOS(); 
+        renderDashboard();
         openBillModal(tx.id);
     }
 
@@ -770,7 +860,8 @@
         const tx = transactions.find(t => t.id === txId); if(!tx) return;
         let itemsHtml = ''; tx.items.forEach(i => { itemsHtml += `<div class="d-flex justify-content-between mb-1"><span>${i.name} x${i.qty}</span><span>${(i.price * i.qty).toLocaleString()}</span></div>`; });
         const payTxt = tx.paymentMethod === 'transfer' ? 'โอน/สแกน' : 'เงินสด';
-        const slipHtml = `<div class="bill-slip"><div class="text-center mb-3 border-bottom border-dark pb-2"><h5 class="fw-bold mb-0">หว้านใหญ่ เพ็ท มาร์ท</h5><small>ใบเสร็จรับเงิน</small><br><small>${tx.date}</small><br><small>#${tx.id}</small></div><div class="mb-3 border-bottom border-dark pb-2">${itemsHtml}</div><div class="d-flex justify-content-between fw-bold fs-5"><span>ยอดรวม</span><span>${tx.total.toLocaleString()} ฿</span></div><div class="d-flex justify-content-between text-muted small mt-1"><span>ชำระโดย</span><span>${payTxt}</span></div></div>`;
+        const typeTxt = tx.isDropship ? '<br><small class="text-warning">[Dropship/Pre-order]</small>' : '';
+        const slipHtml = `<div class="bill-slip"><div class="text-center mb-3 border-bottom border-dark pb-2"><h5 class="fw-bold mb-0">หว้านใหญ่ เพ็ท มาร์ท</h5><small>ใบเสร็จรับเงิน</small><br><small>${tx.date}</small><br><small>#${tx.id}</small>${typeTxt}</div><div class="mb-3 border-bottom border-dark pb-2">${itemsHtml}</div><div class="d-flex justify-content-between fw-bold fs-5"><span>ยอดรวม</span><span>${tx.total.toLocaleString()} ฿</span></div><div class="d-flex justify-content-between text-muted small mt-1"><span>ชำระโดย</span><span>${payTxt}</span></div></div>`;
         Swal.fire({ html: slipHtml, showCloseButton: true, showDenyButton: true, confirmButtonText: 'ปิด', denyButtonText: 'คัดลอก', confirmButtonColor: '#62B194', denyButtonColor: '#4a6fa5' }).then((res) => {
             if (res.isDenied) {
                 let text = `[บิล] หว้านใหญ่ เพ็ท มาร์ท\n${tx.date}\n#${tx.id}\n----------------\n`;
@@ -818,7 +909,9 @@
         const tb = document.getElementById('historyTable'); tb.innerHTML = '';
         transactions.slice().reverse().slice(0,50).forEach(t => {
             let payIcon = t.paymentMethod === 'transfer' ? '<i class="fa-solid fa-qrcode text-primary"></i>' : '<i class="fa-solid fa-money-bill text-success"></i>';
-            tb.innerHTML += `<tr><td class="ps-4">${t.date}</td><td>${payIcon}</td><td>${t.id}</td><td>${t.items.length} รายการ</td><td class="fw-bold text-success">${t.total.toLocaleString()}</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary me-1" onclick="openBillModal('${t.id}')"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delBill('${t.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            // Show dropship badge in history if needed, or just normal view
+            let dsBadge = t.isDropship ? ' <span class="badge bg-warning text-dark" style="font-size:0.6em">Drop</span>' : '';
+            tb.innerHTML += `<tr><td class="ps-4">${t.date}</td><td>${payIcon}</td><td>${t.id}${dsBadge}</td><td>${t.items.length} รายการ</td><td class="fw-bold text-success">${t.total.toLocaleString()}</td><td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary me-1" onclick="openBillModal('${t.id}')"><i class="fa-solid fa-eye"></i></button><button class="btn btn-sm btn-outline-danger" onclick="delBill('${t.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
         });
     }
     async function delBill(id) {
@@ -826,7 +919,10 @@
         if(pass === 'admin') { 
             const idx = transactions.findIndex(x=>x.id===id);
             if(idx > -1) {
-                transactions[idx].items.forEach(i => { let p = products.find(x=>x.id===i.id); if(p) p.stock += (i.qty * i.cutStock); });
+                // If not dropship, return stock
+                if(!transactions[idx].isDropship) {
+                    transactions[idx].items.forEach(i => { let p = products.find(x=>x.id===i.id); if(p) p.stock += (i.qty * i.cutStock); });
+                }
                 transactions.splice(idx,1); saveData(); renderHistory(); renderDashboard(); Swal.fire('ลบแล้ว','คืนสต๊อกเรียบร้อย','success');
             }
         } else if(pass) Swal.fire('รหัสผิด','','error');
@@ -878,7 +974,7 @@
     function exportData() {
         const data = JSON.stringify({ products, transactions, purchases, expenses });
         const blob = new Blob([data], {type: 'application/json'}); const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = `wanyai_backup_v9.6_${new Date().toISOString().slice(0,10)}.json`; a.click();
+        const a = document.createElement('a'); a.href = url; a.download = `wanyai_backup_v9.7_${new Date().toISOString().slice(0,10)}.json`; a.click();
     }
 
     function importData(input) {
