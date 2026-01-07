@@ -948,17 +948,51 @@
         if(prod && prod.stock >= p.qty) { prod.stock -= p.qty; purchases.splice(idx,1); saveData(); renderPurchaseSection(); } else { Swal.fire('ลบไม่ได้','สินค้าถูกขายไปแล้ว','error'); }
     }
 
+    // --- แก้ไขหน้าบัญชี ให้แยกต้นทุนหน้าร้าน vs Dropship ---
     function renderAccounting() {
-        let totalRevenue = 0, totalCOGS = 0;
-        transactions.forEach(t => { totalRevenue += t.total; totalCOGS += (t.total - t.profit); });
-        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0), grossProfit = totalRevenue - totalCOGS, netProfit = grossProfit - totalExpenses;
+        let totalRevenue = 0;
+        let totalCOGS = 0; // ต้นทุนขายรวม
+        let shopCOGS = 0;  // ต้นทุนสินค้าหน้าร้าน (ทุนจริงที่ stock)
+        let dropshipCOGS = 0; // ต้นทุน Dropship (เงินผ่านมือ)
+
+        transactions.forEach(t => { 
+            totalRevenue += t.total; 
+            
+            // คำนวณต้นทุนของบิลนั้น (ยอดขาย - กำไร = ต้นทุน)
+            let billCost = t.total - t.profit;
+            totalCOGS += billCost;
+
+            if (t.isDropship) {
+                dropshipCOGS += billCost;
+            } else {
+                shopCOGS += billCost;
+            }
+        });
+
+        const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+        const grossProfit = totalRevenue - totalCOGS; 
+        const netProfit = grossProfit - totalExpenses;
+
         document.getElementById('pl-revenue').innerText = totalRevenue.toLocaleString(undefined, {minimumFractionDigits:2});
-        document.getElementById('pl-cogs').innerText = '-' + totalCOGS.toLocaleString(undefined, {minimumFractionDigits:2});
+        
+        // --- จุดที่แก้: แสดงแยกต้นทุน 2 บรรทัด ---
+        document.getElementById('pl-cogs').innerHTML = `
+            <div class="d-flex justify-content-between w-100">
+                <span>-${totalCOGS.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+            </div>
+            <div class="small text-muted text-end mt-1" style="font-size: 0.85em;">
+                (ทุนหน้าร้าน: ${shopCOGS.toLocaleString()} | Dropship: ${dropshipCOGS.toLocaleString()})
+            </div>
+        `;
+        // ----------------------------------------
+
         document.getElementById('pl-gross').innerText = grossProfit.toLocaleString(undefined, {minimumFractionDigits:2});
         document.getElementById('pl-expenses').innerText = '-' + totalExpenses.toLocaleString(undefined, {minimumFractionDigits:2});
         document.getElementById('pl-net').innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits:2});
+        
         const statusEl = document.getElementById('pl-status');
         if(netProfit >= 0) { statusEl.innerText = "สถานะ: กำไร"; statusEl.classList.remove('text-danger'); } else { statusEl.innerText = "สถานะ: ขาดทุน"; statusEl.classList.add('text-danger'); }
+        
         const list = document.getElementById('expenseList'); list.innerHTML = '';
         expenses.slice().reverse().forEach((e, i) => { list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center"><div><span class="fw-bold d-block">${e.title}</span><small class="text-muted">${e.date} • ${e.category}</small></div><div class="text-end"><span class="text-danger fw-bold">-${e.amount.toLocaleString()}</span><i class="fa-solid fa-trash text-muted ms-2" style="cursor:pointer" onclick="delExpense(${expenses.length-1-i})"></i></div></li>`; });
     }
